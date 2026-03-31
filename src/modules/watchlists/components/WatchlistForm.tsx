@@ -1,26 +1,32 @@
-import { useMemo, useState } from "react";
-import { Search } from "lucide-react";
+import { FunctionComponent, useMemo, useState } from "react";
+import { SearchableSelect } from "../../../components/SearchableSelect";
 import { ITvShowData } from "../../../shared/interfaces/interface";
 
-interface WatchlistFormProps {
+type WatchlistFormProps = {
   initialData?: {
     title: string;
     description: string;
     tvShows: string[];
   };
-  tvShows: ITvShowData[] | undefined;
-  onSubmit: (data: { title: string; description: string; tvShows: string[] }) => void;
-  onCancel: () => void;
-  isSubmitting: boolean;
-}
 
-export const WatchlistForm = ({
+  isSubmitting: boolean;
+  tvShows: ITvShowData[] | undefined;
+
+  onCancel: () => void;
+  onSubmit: (data: {
+    title: string;
+    description: string;
+    tvShows: string[];
+  }) => void;
+};
+
+export const WatchlistForm: FunctionComponent<WatchlistFormProps> = ({
   initialData,
   tvShows,
   onSubmit,
   onCancel,
   isSubmitting,
-}: WatchlistFormProps) => {
+}) => {
   const [formState, setFormState] = useState({
     title: initialData?.title || "",
     description: initialData?.description || "",
@@ -28,23 +34,24 @@ export const WatchlistForm = ({
     searchModalTerm: "",
   });
 
-  const handleChange = (field: keyof typeof formState, value: any) => {
+  const handleChange = (field: keyof typeof formState, value: any) =>
     setFormState((prev) => ({ ...prev, [field]: value }));
-  };
 
-  const filteredModalTvShows = useMemo(() => {
-    return (
+  const filteredModalTvShows = useMemo(
+    () =>
       tvShows?.filter((s) =>
-        s.title.toLowerCase().includes(formState.searchModalTerm.toLowerCase())
-      ) || []
-    );
-  }, [tvShows, formState.searchModalTerm]);
+        s.title.toLowerCase().includes(formState.searchModalTerm.toLowerCase()),
+      ) || [],
+    [tvShows, formState.searchModalTerm],
+  );
 
   const toggleShow = (key: string) => {
     const current = formState.tvShows;
+
     const next = current.includes(key)
       ? current.filter((k) => k !== key)
       : [...current, key];
+
     handleChange("tvShows", next);
   };
 
@@ -58,7 +65,10 @@ export const WatchlistForm = ({
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4 max-h-[60vh] overflow-y-auto pr-1">
+    <form
+      onSubmit={handleSubmit}
+      className="space-y-4 max-h-[60vh] overflow-y-auto pr-1"
+    >
       <div>
         <label className="mb-1 block text-sm font-medium text-foreground">
           Título
@@ -68,7 +78,7 @@ export const WatchlistForm = ({
           value={formState.title}
           onChange={(e) => handleChange("title", e.target.value)}
           required
-          className="w-full rounded-md border border-input bg-secondary px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+          className="w-full rounded-md border border-input bg-secondary px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-inset"
         />
       </div>
 
@@ -84,50 +94,23 @@ export const WatchlistForm = ({
         />
       </div>
 
-      <div>
-        <label className="mb-1 block text-sm font-medium text-foreground">
-          Programas de TV
-        </label>
-        <div className="relative mb-2">
-          <Search className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
-          <input
-            type="text"
-            placeholder="Pesquisar programa..."
-            value={formState.searchModalTerm}
-            onChange={(e) => handleChange("searchModalTerm", e.target.value)}
-            className="w-full rounded-md border border-input bg-secondary/50 pl-8 pr-3 py-1.5 text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-ring"
-          />
-        </div>
-
-        <div className="space-y-2 max-h-40 overflow-y-auto rounded-md border border-input bg-secondary p-3">
-          {filteredModalTvShows.map((s) => (
-            <label
-              key={s["@key"]}
-              className="flex items-center gap-2 cursor-pointer text-sm text-foreground transition-colors hover:bg-primary/5 p-1 rounded"
-            >
-              <input
-                type="checkbox"
-                checked={formState.tvShows.includes(s["@key"])}
-                onChange={() => toggleShow(s["@key"])}
-                className="rounded border-input accent-primary h-4 w-4"
-              />
-              {s.title}
-            </label>
-          ))}
-
-          {filteredModalTvShows.length === 0 && (
-            <p className="text-xs text-muted-foreground">
-              Nenhum programa correspondente.
-            </p>
-          )}
-
-          {(!tvShows || tvShows.length === 0) && (
-            <p className="text-xs text-muted-foreground">
-              Nenhum programa de TV disponível.
-            </p>
-          )}
-        </div>
-      </div>
+      <SearchableSelect
+        label="Programas de TV"
+        items={filteredModalTvShows}
+        searchTerm={formState.searchModalTerm}
+        onSearchChange={(val) => handleChange("searchModalTerm", val)}
+        renderItem={(s) => (
+          <label className="flex items-center gap-2 cursor-pointer text-sm text-foreground transition-colors hover:bg-primary/5 p-1 rounded">
+            <input
+              type="checkbox"
+              checked={formState.tvShows.includes(s["@key"])}
+              onChange={() => toggleShow(s["@key"])}
+              className="rounded border-input accent-primary h-4 w-4"
+            />
+            {s.title}
+          </label>
+        )}
+      />
 
       <div className="flex justify-end gap-3 pt-2">
         <button

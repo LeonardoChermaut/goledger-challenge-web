@@ -4,51 +4,49 @@ import {
   useSearchAssets,
   useUpdateAsset,
 } from "@/hooks/use-assets";
+import { useAssetSearch } from "@/hooks/use-asset-search";
 import { useDisclosure } from "@/hooks/use-disclosure";
 import { usePagination } from "@/hooks/use-pagination";
-import { Plus, Search } from "lucide-react";
-import { useMemo, useState } from "react";
+import { ITvShowData, IWatchlistData } from "@/shared/interfaces/interface";
+import { Plus } from "lucide-react";
+import { useState } from "react";
 import { ConfirmDialog } from "../../components/ConfirmDialog";
-import { ErrorMessage } from "../../components/ErrorMessage";
-import { LoadingSpinner } from "../../components/LoadingSpinner";
 import { Modal } from "../../components/Modal";
 import { PageShell } from "../../components/PageShell";
 import { Pagination } from "../../components/Pagination";
-import { ITvShowData, IWatchlistData } from "../../shared/interfaces/interface";
+import { QueryResult } from "../../components/QueryResult";
+import { SearchInput } from "../../components/SearchInput";
 import { TvShowCard } from "./components/TvShowCard";
 import { TvShowForm } from "./components/TvShowForm";
 
 const ITEMS_PER_PAGE = 9;
 
 export const TvShowsPage = () => {
-  const {
-    data: tvShows,
-    isLoading,
-    error,
-  } = useSearchAssets<ITvShowData>("tvShows");
+  // Data Fetching
+  const { data: tvShows, isLoading, error } = useSearchAssets<ITvShowData>("tvShows");
   const { data: watchlists } = useSearchAssets<IWatchlistData>("watchlist");
 
+  // Mutations
   const createMutation = useCreateAsset<ITvShowData>("tvShows");
   const updateMutation = useUpdateAsset("tvShows");
   const deleteMutation = useDeleteAsset("tvShows");
-
   const createWatchlist = useCreateAsset<IWatchlistData>("watchlist");
   const deleteWatchlist = useDeleteAsset("watchlist");
 
+  // UI State
   const formDisclosure = useDisclosure();
   const deleteDisclosure = useDisclosure();
   const [editItem, setEditItem] = useState<ITvShowData | null>(null);
   const [deleteItem, setDeleteItem] = useState<ITvShowData | null>(null);
-  const [searchTerm, setSearchTerm] = useState("");
 
-  const filtered = useMemo(
-    () =>
-      tvShows?.filter((s) =>
-        s.title.toLowerCase().includes(searchTerm.toLowerCase()),
-      ) || [],
-    [tvShows, searchTerm],
-  );
+  // Search Hook
+  const { searchTerm, filteredData, handleSearchChange } = useAssetSearch({
+    data: tvShows,
+    searchKey: "title",
+    onFilterChange: () => resetPagination(),
+  });
 
+  // Pagination Hook
   const {
     currentPage,
     totalPages,
@@ -56,10 +54,11 @@ export const TvShowsPage = () => {
     onPageChange,
     resetPagination,
   } = usePagination({
-    data: filtered,
+    data: filteredData,
     itemsPerPage: ITEMS_PER_PAGE,
   });
 
+  // Event Handlers
   const openCreate = () => {
     setEditItem(null);
     formDisclosure.open();
@@ -73,11 +72,6 @@ export const TvShowsPage = () => {
   const openDelete = (item: ITvShowData) => {
     setDeleteItem(item);
     deleteDisclosure.open();
-  };
-
-  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchTerm(e.target.value);
-    resetPagination();
   };
 
   const handleFormSubmit = async (formData: {
@@ -95,7 +89,6 @@ export const TvShowsPage = () => {
           "@key": editItem["@key"],
         });
       }
-
       await createMutation.mutateAsync({
         "@assetType": "tvShows",
         ...formData,
@@ -160,32 +153,32 @@ export const TvShowsPage = () => {
         </button>
       }
     >
-      <div className="mb-6 relative">
-        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-        <input
-          type="text"
-          placeholder="Pesquisar programas de TV..."
-          value={searchTerm}
-          onChange={handleSearchChange}
-          className="w-full rounded-md border border-input bg-secondary pl-10 pr-4 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
-        />
-      </div>
+      <SearchInput
+        value={searchTerm}
+        onChange={handleSearchChange}
+        placeholder="Pesquisar programas de TV..."
+        className="mb-8"
+      />
 
-      {isLoading && <LoadingSpinner />}
-      {error && <ErrorMessage message="Falha ao carregar programas de TV." />}
-
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {paginatedData.map((show) => (
-          <TvShowCard
-            key={show["@key"]}
-            show={show}
-            isFavorite={isFavorite(show.title)}
-            onToggleFavorite={handleToggleFavorite}
-            onEdit={openEdit}
-            onDelete={openDelete}
-          />
-        ))}
-      </div>
+      <QueryResult
+        loading={isLoading}
+        error={error}
+        empty={filteredData.length === 0}
+        emptyMessage="Nenhum programa de TV encontrado."
+      >
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {paginatedData.map((show) => (
+            <TvShowCard
+              key={show["@key"]}
+              show={show}
+              isFavorite={isFavorite(show.title)}
+              onToggleFavorite={handleToggleFavorite}
+              onEdit={openEdit}
+              onDelete={openDelete}
+            />
+          ))}
+        </div>
+      </QueryResult>
 
       <Pagination
         currentPage={currentPage}
@@ -193,12 +186,6 @@ export const TvShowsPage = () => {
         onPageChange={onPageChange}
         className="mt-8"
       />
-
-      {!isLoading && filtered.length === 0 && (
-        <p className="text-center py-12 text-muted-foreground">
-          Nenhum programa de TV encontrado.
-        </p>
-      )}
 
       <Modal
         open={formDisclosure.isOpen}

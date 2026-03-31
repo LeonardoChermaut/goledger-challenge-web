@@ -1,3 +1,4 @@
+import { useAssetSearch } from "@/hooks/use-asset-search";
 import {
   useCreateAsset,
   useDeleteAsset,
@@ -11,57 +12,59 @@ import {
   ISeasonData,
   ITvShowData,
 } from "@/shared/interfaces/interface";
-import { Plus, Search } from "lucide-react";
-import { useMemo, useState } from "react";
+import { Plus } from "lucide-react";
+import { useState } from "react";
 import { ConfirmDialog } from "../../components/ConfirmDialog";
-import { ErrorMessage } from "../../components/ErrorMessage";
-import { LoadingSpinner } from "../../components/LoadingSpinner";
 import { Modal } from "../../components/Modal";
 import { PageShell } from "../../components/PageShell";
 import { Pagination } from "../../components/Pagination";
-import {
-  findAssetByKey,
-  formatSeasonLabel,
-} from "../../shared/utils/utils";
+import { QueryResult } from "../../components/QueryResult";
+import { SearchInput } from "../../components/SearchInput";
+import { findAssetByKey, formatSeasonLabel } from "../../shared/utils/utils";
 import { EpisodeCard } from "./components/EpisodeCard";
 import { EpisodeForm } from "./components/EpisodeForm";
 
 const ITEMS_PER_PAGE = 9;
 
 export const EpisodesPage = () => {
-  // Data Fetching
-  const { data: episodes, isLoading, error } = useSearchAssets<IEpisodeData>("episodes");
+  const {
+    data: episodes,
+    isLoading,
+    error,
+  } = useSearchAssets<IEpisodeData>("episodes");
   const { data: seasons } = useSearchAssets<ISeasonData>("seasons");
   const { data: tvShows } = useSearchAssets<ITvShowData>("tvShows");
 
-  // Mutations
   const createMutation = useCreateAsset<IEpisodeData>("episodes");
   const updateMutation = useUpdateAsset("episodes");
   const deleteMutation = useDeleteAsset("episodes");
 
-  // UI State
   const formDisclosure = useDisclosure();
   const deleteDisclosure = useDisclosure();
+
   const [editItem, setEditItem] = useState<IEpisodeData | null>(null);
   const [deleteItem, setDeleteItem] = useState<IEpisodeData | null>(null);
-  const [searchTerm, setSearchTerm] = useState<string>("");
 
-  // Helper for Labeling
   const getEpisodeSeasonLabel = (ep: IEpisodeData): string => {
     const season = findAssetByKey(seasons, ep.season["@key"]);
-    if (!season) return "Desconhecido";
+    if (!season) {
+      return "Desconhecido";
+    }
+
     const tvShow = findAssetByKey(tvShows, season.tvShow["@key"]);
-    return formatSeasonLabel(tvShow?.title ?? season.tvShow["@key"], season.number);
+
+    return formatSeasonLabel(
+      tvShow?.title ?? season.tvShow["@key"],
+      season.number,
+    );
   };
 
-  // Filtering Logic
-  const filtered = useMemo(() => {
-    return episodes?.filter((e) =>
-      e.title.toLowerCase().includes(searchTerm.toLowerCase()),
-    ) || [];
-  }, [episodes, searchTerm]);
+  const { searchTerm, filteredData, handleSearchChange } = useAssetSearch({
+    data: episodes,
+    searchKey: "title",
+    onFilterChange: () => resetPagination(),
+  });
 
-  // Pagination Hook
   const {
     currentPage,
     totalPages,
@@ -69,11 +72,10 @@ export const EpisodesPage = () => {
     onPageChange,
     resetPagination,
   } = usePagination({
-    data: filtered,
+    data: filteredData,
     itemsPerPage: ITEMS_PER_PAGE,
   });
 
-  // Event Handlers
   const openCreate = () => {
     setEditItem(null);
     formDisclosure.open();
@@ -87,11 +89,6 @@ export const EpisodesPage = () => {
   const openDelete = (item: IEpisodeData) => {
     setDeleteItem(item);
     deleteDisclosure.open();
-  };
-
-  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchTerm(e.target.value);
-    resetPagination();
   };
 
   const handleFormSubmit = async (formData: {
@@ -110,10 +107,17 @@ export const EpisodesPage = () => {
 
     const payload = {
       "@assetType": "episodes" as const,
-      season: { "@assetType": "seasons" as const, "@key": formData.season },
+      season: {
+        "@assetType": "seasons" as const,
+        "@key": formData.season,
+      },
+
       episodeNumber: formData.episodeNumber,
       title: formData.title,
-      releaseDate: formData.releaseDate ? new Date(formData.releaseDate).toISOString() : "",
+
+      releaseDate: formData.releaseDate
+        ? new Date(formData.releaseDate).toISOString()
+        : "",
       description: formData.description,
       rating: formData.rating,
     };
@@ -130,7 +134,9 @@ export const EpisodesPage = () => {
       await updateMutation.mutateAsync({
         "@key": editItem["@key"],
         ...payload,
-        releaseDate: formData.releaseDate ? new Date(formData.releaseDate).toISOString() : undefined,
+        releaseDate: formData.releaseDate
+          ? new Date(formData.releaseDate).toISOString()
+          : undefined,
       });
     }
 
@@ -138,13 +144,15 @@ export const EpisodesPage = () => {
   };
 
   const handleDeleteConfirm = async () => {
-    if (!deleteItem) return;
+    if (!deleteItem) {
+      return;
+    }
 
     await deleteMutation.mutateAsync({
       "@assetType": "episodes",
       "@key": deleteItem["@key"],
     });
-    
+
     deleteDisclosure.close();
     setDeleteItem(null);
   };
@@ -164,31 +172,31 @@ export const EpisodesPage = () => {
         </button>
       }
     >
-      <div className="mb-6 relative">
-        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-        <input
-          type="text"
-          placeholder="Pesquisar episódios..."
-          value={searchTerm}
-          onChange={handleSearchChange}
-          className="w-full rounded-md border border-input bg-secondary pl-10 pr-4 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
-        />
-      </div>
+      <SearchInput
+        value={searchTerm}
+        onChange={handleSearchChange}
+        placeholder="Pesquisar episódios..."
+        className="mb-8"
+      />
 
-      {isLoading && <LoadingSpinner />}
-      {error && <ErrorMessage message="Falha ao carregar episódios." />}
-
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {paginatedData.map((ep) => (
-          <EpisodeCard
-            key={ep["@key"]}
-            episode={ep}
-            seasonLabel={getEpisodeSeasonLabel(ep)}
-            onEdit={openEdit}
-            onDelete={openDelete}
-          />
-        ))}
-      </div>
+      <QueryResult
+        loading={isLoading}
+        error={error}
+        empty={filteredData.length === 0}
+        emptyMessage="Nenhum episódio encontrado."
+      >
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {paginatedData.map((ep) => (
+            <EpisodeCard
+              key={ep["@key"]}
+              episode={ep}
+              seasonLabel={getEpisodeSeasonLabel(ep)}
+              onEdit={openEdit}
+              onDelete={openDelete}
+            />
+          ))}
+        </div>
+      </QueryResult>
 
       <Pagination
         currentPage={currentPage}
@@ -196,12 +204,6 @@ export const EpisodesPage = () => {
         onPageChange={onPageChange}
         className="mt-8"
       />
-
-      {!isLoading && filtered.length === 0 && (
-        <p className="text-center py-12 text-muted-foreground">
-          Nenhum episódio encontrado.
-        </p>
-      )}
 
       <Modal
         open={formDisclosure.isOpen}
@@ -215,9 +217,12 @@ export const EpisodesPage = () => {
                   season: editItem.season["@key"],
                   episodeNumber: editItem.episodeNumber,
                   title: editItem.title,
-                  releaseDate: editItem.releaseDate ? editItem.releaseDate.slice(0, 10) : "",
+                  releaseDate: editItem.releaseDate
+                    ? editItem.releaseDate.slice(0, 10)
+                    : "",
                   description: editItem.description,
-                  rating: editItem.rating != null ? String(editItem.rating) : "",
+                  rating:
+                    editItem.rating != null ? String(editItem.rating) : "",
                 }
               : undefined
           }
@@ -240,4 +245,3 @@ export const EpisodesPage = () => {
     </PageShell>
   );
 };
-

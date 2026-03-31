@@ -1,3 +1,4 @@
+import { useAssetSearch } from "@/hooks/use-asset-search";
 import {
   useCreateAsset,
   useDeleteAsset,
@@ -7,15 +8,15 @@ import {
 import { useDisclosure } from "@/hooks/use-disclosure";
 import { usePagination } from "@/hooks/use-pagination";
 import { ISeasonData, ITvShowData } from "@/shared/interfaces/interface";
-import { Plus, Search } from "lucide-react";
-import { useMemo, useState } from "react";
+import { Plus } from "lucide-react";
+import { useState } from "react";
 import { ConfirmDialog } from "../../components/ConfirmDialog";
-import { ErrorMessage } from "../../components/ErrorMessage";
-import { LoadingSpinner } from "../../components/LoadingSpinner";
 import { Modal } from "../../components/Modal";
 import { PageShell } from "../../components/PageShell";
 import { Pagination } from "../../components/Pagination";
-import { findAssetByKey } from "../../shared/utils/utils";
+import { QueryResult } from "../../components/QueryResult";
+import { SearchInput } from "../../components/SearchInput";
+import { getTvShowTitle } from "../../shared/utils/utils";
 import { SeasonCard } from "./components/SeasonCard";
 import { SeasonForm } from "./components/SeasonForm";
 
@@ -36,21 +37,15 @@ export const SeasonsPage = () => {
   const formDisclosure = useDisclosure();
   const deleteDisclosure = useDisclosure();
 
-  const [searchTerm, setSearchTerm] = useState<string>("");
   const [editItem, setEditItem] = useState<ISeasonData | null>(null);
   const [deleteItem, setDeleteItem] = useState<ISeasonData | null>(null);
 
-  const getTvShowTitle = (season: ISeasonData): string =>
-    (season && findAssetByKey(tvShows, season.tvShow["@key"])?.title) ||
-    season?.tvShow["@key"];
-
-  const filtered = useMemo(
-    () =>
-      seasons?.filter((s) =>
-        getTvShowTitle(s).toLowerCase().includes(searchTerm.toLowerCase()),
-      ) || [],
-    [seasons, tvShows, searchTerm],
-  );
+  const { searchTerm, filteredData, handleSearchChange } = useAssetSearch({
+    data: seasons,
+    customFilter: (item, term) =>
+      getTvShowTitle(item, tvShows).toLowerCase().includes(term),
+    onFilterChange: () => resetPagination(),
+  });
 
   const {
     currentPage,
@@ -59,7 +54,7 @@ export const SeasonsPage = () => {
     onPageChange,
     resetPagination,
   } = usePagination({
-    data: filtered,
+    data: filteredData,
     itemsPerPage: ITEMS_PER_PAGE,
   });
 
@@ -78,11 +73,6 @@ export const SeasonsPage = () => {
     deleteDisclosure.open();
   };
 
-  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchTerm(e.target.value);
-    resetPagination();
-  };
-
   const handleFormSubmit = async (formData: {
     tvShow: string;
     number: number;
@@ -96,7 +86,11 @@ export const SeasonsPage = () => {
 
     const payload = {
       "@assetType": "seasons" as const,
-      tvShow: { "@assetType": "tvShows" as const, "@key": formData.tvShow },
+      tvShow: {
+        "@assetType": "tvShows" as const,
+        "@key": formData.tvShow,
+      },
+
       number: formData.number,
       year: formData.year,
     };
@@ -120,7 +114,9 @@ export const SeasonsPage = () => {
   };
 
   const handleDeleteConfirm = async () => {
-    if (!deleteItem) return;
+    if (!deleteItem) {
+      return;
+    }
 
     await deleteMutation.mutateAsync({
       "@assetType": "seasons",
@@ -146,31 +142,31 @@ export const SeasonsPage = () => {
         </button>
       }
     >
-      <div className="mb-6 relative">
-        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-        <input
-          type="text"
-          placeholder="Pesquisar por programa..."
-          value={searchTerm}
-          onChange={handleSearchChange}
-          className="w-full rounded-md border border-input bg-secondary pl-10 pr-4 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
-        />
-      </div>
+      <SearchInput
+        value={searchTerm}
+        onChange={handleSearchChange}
+        placeholder="Pesquisar por programa..."
+        className="mb-8"
+      />
 
-      {isLoading && <LoadingSpinner />}
-      {error && <ErrorMessage message="Falha ao carregar temporadas." />}
-
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {paginatedData.map((season) => (
-          <SeasonCard
-            key={season["@key"]}
-            season={season}
-            tvShowTitle={getTvShowTitle(season)}
-            onEdit={openEdit}
-            onDelete={openDelete}
-          />
-        ))}
-      </div>
+      <QueryResult
+        loading={isLoading}
+        error={error}
+        empty={filteredData.length === 0}
+        emptyMessage="Nenhuma temporada encontrada."
+      >
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {paginatedData.map((season) => (
+            <SeasonCard
+              key={season["@key"]}
+              season={season}
+              tvShowTitle={getTvShowTitle(season, tvShows)}
+              onEdit={openEdit}
+              onDelete={openDelete}
+            />
+          ))}
+        </div>
+      </QueryResult>
 
       <Pagination
         currentPage={currentPage}
@@ -178,12 +174,6 @@ export const SeasonsPage = () => {
         onPageChange={onPageChange}
         className="mt-8"
       />
-
-      {!isLoading && filtered.length === 0 && (
-        <p className="text-center py-12 text-muted-foreground">
-          Nenhuma temporada encontrada.
-        </p>
-      )}
 
       <Modal
         open={formDisclosure.isOpen}
@@ -212,7 +202,7 @@ export const SeasonsPage = () => {
         onClose={deleteDisclosure.close}
         onConfirm={handleDeleteConfirm}
         title="Remover Temporada"
-        message={`Deseja remover a Temporada ${deleteItem?.number} de ${getTvShowTitle(deleteItem!)}? Esta ação não pode ser desfeita.`}
+        message={`Deseja remover a Temporada ${deleteItem?.number} de ${getTvShowTitle(deleteItem!, tvShows)}? Esta ação não pode ser desfeita.`}
         loading={deleteMutation.isPending}
       />
     </PageShell>

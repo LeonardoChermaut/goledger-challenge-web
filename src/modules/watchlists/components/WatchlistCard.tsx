@@ -1,20 +1,21 @@
 import { Pencil, Trash2, Tv } from "lucide-react";
+import { FunctionComponent } from "react";
 import { DropdownMenu } from "../../../components/DropdownMenu";
 import { IWatchlistData } from "../../../shared/interfaces/interface";
 
-interface WatchlistCardProps {
+type WatchlistCardProps = {
   watchlist: IWatchlistData;
-  getTvShowTitle: (key: string) => string;
   onEdit: (wl: IWatchlistData) => void;
   onDelete: (wl: IWatchlistData) => void;
-}
+  getTvShowTitle: (key: string) => string;
+};
 
-export const WatchlistCard = ({
+export const WatchlistCard: FunctionComponent<WatchlistCardProps> = ({
   watchlist,
   getTvShowTitle,
   onEdit,
   onDelete,
-}: WatchlistCardProps) => {
+}) => {
   return (
     <div className="glass-card p-5 flex flex-col h-full gap-3 group relative hover:z-20">
       <div className="flex items-start justify-between gap-4">

@@ -1,5 +1,5 @@
-import { Search } from "lucide-react";
-import { FunctionComponent, useMemo, useState } from "react";
+import { FormEvent, FunctionComponent, useMemo, useState } from "react";
+import { SearchableSelect } from "../../../components/SearchableSelect";
 import { ITvShowData } from "../../../shared/interfaces/interface";
 
 type SeasonFormProps = {
@@ -8,8 +8,10 @@ type SeasonFormProps = {
     number: number | string;
     year: number | string;
   };
-  tvShows: ITvShowData[] | undefined;
+
   isSubmitting: boolean;
+  tvShows: ITvShowData[] | undefined;
+
   onCancel: () => void;
   onSubmit: (data: { tvShow: string; number: number; year: number }) => void;
 };
@@ -22,25 +24,24 @@ export const SeasonForm: FunctionComponent<SeasonFormProps> = ({
   isSubmitting,
 }) => {
   const [formState, setFormState] = useState({
-    tvShow: initialData?.tvShow || "",
-    number: initialData?.number ? String(initialData.number) : "",
-    year: initialData?.year ? String(initialData.year) : "",
     searchModalTerm: "",
+    tvShow: initialData?.tvShow || "",
+    year: initialData?.year ? String(initialData.year) : "",
+    number: initialData?.number ? String(initialData.number) : "",
   });
 
-  const handleChange = (field: keyof typeof formState, value: string) => {
+  const handleChange = (field: keyof typeof formState, value: string) =>
     setFormState((prev) => ({ ...prev, [field]: value }));
-  };
 
-  const filteredModalTvShows = useMemo(() => {
-    return (
+  const filteredModalTvShows = useMemo(
+    () =>
       tvShows?.filter((s) =>
         s.title.toLowerCase().includes(formState.searchModalTerm.toLowerCase()),
-      ) || []
-    );
-  }, [tvShows, formState.searchModalTerm]);
+      ) || [],
+    [tvShows, formState.searchModalTerm],
+  );
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
     onSubmit({
       tvShow: formState.tvShow,
@@ -56,38 +57,24 @@ export const SeasonForm: FunctionComponent<SeasonFormProps> = ({
       onSubmit={handleSubmit}
       className="space-y-4 max-h-[70vh] overflow-y-auto pr-1"
     >
-      <div className="space-y-2">
-        <label className="block text-sm font-medium text-foreground">
-          Programa de TV
-        </label>
-        <div className="relative mb-2">
-          <Search className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
-          <input
-            type="text"
-            placeholder="Pesquisar programa..."
-            value={formState.searchModalTerm}
-            onChange={(e) => handleChange("searchModalTerm", e.target.value)}
-            className="w-full rounded-md border border-input bg-secondary/50 pl-8 pr-3 py-1.5 text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-ring"
-          />
-        </div>
-
-        <select
-          value={formState.tvShow}
-          onChange={(e) => handleChange("tvShow", e.target.value)}
-          required
-          className="w-full rounded-md border border-input bg-secondary px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-ring"
-        >
-          <option value="">Selecione um programa</option>
-          {filteredModalTvShows.map((s) => (
-            <option key={s["@key"]} value={s["@key"]}>
-              {s.title}
-            </option>
-          ))}
-          {filteredModalTvShows.length === 0 && (
-            <option disabled>Nenhum resultado</option>
-          )}
-        </select>
-      </div>
+      <SearchableSelect
+        label="Programa de TV"
+        items={filteredModalTvShows}
+        searchTerm={formState.searchModalTerm}
+        onSearchChange={(val) => handleChange("searchModalTerm", val)}
+        renderItem={(s) => (
+          <label className="flex items-center gap-2 cursor-pointer text-sm text-foreground transition-colors hover:bg-primary/5 p-1 rounded">
+            <input
+              type="checkbox"
+              name="tvShow"
+              checked={formState.tvShow === s["@key"]}
+              onChange={() => handleChange("tvShow", s["@key"])}
+              className="rounded-full border-input accent-primary h-4 w-4"
+            />
+            {s.title}
+          </label>
+        )}
+      />
 
       <div>
         <label className="mb-1 block text-sm font-medium text-foreground">
@@ -111,7 +98,7 @@ export const SeasonForm: FunctionComponent<SeasonFormProps> = ({
           value={formState.year}
           onChange={(e) => handleChange("year", e.target.value)}
           required
-          className="w-full rounded-md border border-input bg-secondary px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+          className="w-full rounded-md border border-input bg-secondary px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-inset"
         />
       </div>
 

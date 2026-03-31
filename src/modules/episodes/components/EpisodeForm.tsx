@@ -1,5 +1,5 @@
-import { Search } from "lucide-react";
-import { FunctionComponent, useMemo, useState } from "react";
+import { FormEvent, FunctionComponent, useMemo, useState } from "react";
+import { SearchableSelect } from "../../../components/SearchableSelect";
 import { ISeasonData, ITvShowData } from "../../../shared/interfaces/interface";
 import { isValidRating } from "../../../shared/utils/utils";
 
@@ -38,33 +38,35 @@ export const EpisodeForm: FunctionComponent<EpisodeFormProps> = ({
   isSubmitting,
 }) => {
   const [formState, setFormState] = useState({
+    searchModalTerm: "",
+    title: initialData?.title || "",
     season: initialData?.season || "",
+    releaseDate: initialData?.releaseDate || "",
+    description: initialData?.description || "",
+
     episodeNumber: initialData?.episodeNumber
       ? String(initialData.episodeNumber)
       : "",
-    title: initialData?.title || "",
-    releaseDate: initialData?.releaseDate || "",
-    description: initialData?.description || "",
+
     rating: initialData?.rating != null ? String(initialData.rating) : "",
-    searchModalTerm: "",
   });
 
   const handleChange = (field: keyof typeof formState, value: string) =>
     setFormState((prev) => ({ ...prev, [field]: value }));
 
-  const filteredModalSeasons = useMemo(() => {
-    return (
+  const filteredModalSeasons = useMemo(
+    () =>
       seasons?.filter((s) => {
         const show = tvShows?.find((t) => t["@key"] === s.tvShow["@key"]);
         const label = `${show?.title ?? ""} Temporada ${s.number}`;
         return label
           .toLowerCase()
           .includes(formState.searchModalTerm.toLowerCase());
-      }) || []
-    );
-  }, [seasons, tvShows, formState.searchModalTerm]);
+      }) || [],
+    [seasons, tvShows, formState.searchModalTerm],
+  );
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
     onSubmit({
       season: formState.season,
@@ -88,41 +90,29 @@ export const EpisodeForm: FunctionComponent<EpisodeFormProps> = ({
       onSubmit={handleSubmit}
       className="space-y-4 max-h-[70vh] overflow-y-auto pr-1"
     >
-      <div className="space-y-2">
-        <label className="block text-sm font-medium text-foreground">
-          Temporada
-        </label>
-        <div className="relative mb-2">
-          <Search className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
-          <input
-            type="text"
-            placeholder="Pesquisar programa ou temporada..."
-            value={formState.searchModalTerm}
-            onChange={(e) => handleChange("searchModalTerm", e.target.value)}
-            className="w-full rounded-md border border-input bg-secondary/50 pl-8 pr-3 py-1.5 text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-ring"
-          />
-        </div>
+      <SearchableSelect
+        label="Temporada"
+        items={filteredModalSeasons}
+        searchTerm={formState.searchModalTerm}
+        onSearchChange={(val) => handleChange("searchModalTerm", val)}
+        placeholder="Pesquisar programa ou temporada..."
+        renderItem={(s) => {
+          const show = tvShows?.find((t) => t["@key"] === s.tvShow["@key"]);
 
-        <select
-          value={formState.season}
-          onChange={(e) => handleChange("season", e.target.value)}
-          required
-          className="w-full rounded-md border border-input bg-secondary px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-ring"
-        >
-          <option value="">Selecione uma temporada</option>
-          {filteredModalSeasons.map((s) => {
-            const show = tvShows?.find((t) => t["@key"] === s.tvShow["@key"]);
-            return (
-              <option key={s["@key"]} value={s["@key"]}>
-                {show?.title ?? "?"} - Temporada {s.number}
-              </option>
-            );
-          })}
-          {filteredModalSeasons.length === 0 && (
-            <option disabled>Nenhum resultado</option>
-          )}
-        </select>
-      </div>
+          return (
+            <label className="flex items-center gap-2 cursor-pointer text-sm text-foreground transition-colors hover:bg-primary/5 p-1 rounded">
+              <input
+                type="checkbox"
+                name="season"
+                checked={formState.season === s["@key"]}
+                onChange={() => handleChange("season", s["@key"])}
+                className="rounded-full border-input accent-primary h-4 w-4"
+              />
+              {show?.title ?? "?"} - Temporada {s.number}
+            </label>
+          );
+        }}
+      />
 
       <div>
         <label className="mb-1 block text-sm font-medium text-foreground">
@@ -146,7 +136,7 @@ export const EpisodeForm: FunctionComponent<EpisodeFormProps> = ({
           value={formState.title}
           onChange={(e) => handleChange("title", e.target.value)}
           required
-          className="w-full rounded-md border border-input bg-secondary px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+          className="w-full rounded-md border border-input bg-secondary px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-inset"
         />
       </div>
 
@@ -158,7 +148,7 @@ export const EpisodeForm: FunctionComponent<EpisodeFormProps> = ({
           type="date"
           value={formState.releaseDate}
           onChange={(e) => handleChange("releaseDate", e.target.value)}
-          className="w-full rounded-md border border-input bg-secondary px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+          className="w-full rounded-md border border-input bg-secondary px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-inset"
         />
       </div>
 
@@ -171,7 +161,7 @@ export const EpisodeForm: FunctionComponent<EpisodeFormProps> = ({
           onChange={(e) => handleChange("description", e.target.value)}
           rows={2}
           required
-          className="w-full rounded-md border border-input bg-secondary px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+          className="w-full rounded-md border border-input bg-secondary px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-inset"
         />
       </div>
 
@@ -186,7 +176,7 @@ export const EpisodeForm: FunctionComponent<EpisodeFormProps> = ({
           max="10"
           value={formState.rating}
           onChange={(e) => handleChange("rating", e.target.value)}
-          className="w-full rounded-md border border-input bg-secondary px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+          className="w-full rounded-md border border-input bg-secondary px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-inset"
         />
         {formState.rating && !isValidRating(Number(formState.rating)) && (
           <p className="mt-1 text-xs text-destructive">
