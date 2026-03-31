@@ -37,10 +37,11 @@ class ApiService extends BaseApiService {
   private static instance: ApiService;
 
   private constructor(
-    private readonly baseUrl: string = "http://ec2-50-19-36-138.compute-1.amazonaws.com",
+    private readonly baseUrl: string = "",
     private readonly headers: HeadersInit = {
       "Content-Type": "application/json",
-      Authorization: "Basic " + btoa(`${import.meta.env.API_AUTHORIZATION || "goledger:5NxVCAjC"}`),
+      Authorization:
+        "Basic " + btoa(`${import.meta.env.API_AUTHORIZATION || "goledger:5NxVCAjC"}`),
     }
   ) {
     super();
@@ -74,7 +75,10 @@ class ApiService extends BaseApiService {
     return queryString ? `?${queryString}` : "";
   }
 
-  public async get<T>(endpoint: string, params?: IPaginationParams): Promise<T> {
+  public async get<T>(
+    endpoint: string,
+    params?: IPaginationParams
+  ): Promise<T> {
     const queryString = this.buildQueryString(params);
 
     const response = await fetch(`${this.baseUrl}${endpoint}${queryString}`, {
@@ -105,7 +109,10 @@ class ApiService extends BaseApiService {
     return this.handleResponse<T>(response);
   }
 
-  public async delete<T, D = undefined>(endpoint: string, data?: D): Promise<T> {
+  public async delete<T, D = undefined>(
+    endpoint: string,
+    data?: D
+  ): Promise<T> {
     const response = await fetch(`${this.baseUrl}${endpoint}`, {
       method: "DELETE",
       headers: this.headers,

@@ -9,6 +9,12 @@ export default defineConfig({
     hmr: {
       overlay: false,
     },
+    proxy: {
+      "/api": {
+        target: "http://ec2-50-19-36-138.compute-1.amazonaws.com",
+        changeOrigin: true,
+      },
+    },
   },
   plugins: [react()],
   resolve: {
