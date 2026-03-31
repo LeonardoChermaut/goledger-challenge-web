@@ -1,10 +1,10 @@
+import { useAssetSearch } from "@/hooks/use-asset-search";
 import {
   useCreateAsset,
   useDeleteAsset,
   useSearchAssets,
   useUpdateAsset,
 } from "@/hooks/use-assets";
-import { useAssetSearch } from "@/hooks/use-asset-search";
 import { useDisclosure } from "@/hooks/use-disclosure";
 import { usePagination } from "@/hooks/use-pagination";
 import { ITvShowData, IWatchlistData } from "@/shared/interfaces/interface";
@@ -22,31 +22,32 @@ import { TvShowForm } from "./components/TvShowForm";
 const ITEMS_PER_PAGE = 9;
 
 export const TvShowsPage = () => {
-  // Data Fetching
-  const { data: tvShows, isLoading, error } = useSearchAssets<ITvShowData>("tvShows");
+  const {
+    data: tvShows,
+    isLoading,
+    error,
+  } = useSearchAssets<ITvShowData>("tvShows");
   const { data: watchlists } = useSearchAssets<IWatchlistData>("watchlist");
 
-  // Mutations
   const createMutation = useCreateAsset<ITvShowData>("tvShows");
   const updateMutation = useUpdateAsset("tvShows");
   const deleteMutation = useDeleteAsset("tvShows");
+
   const createWatchlist = useCreateAsset<IWatchlistData>("watchlist");
   const deleteWatchlist = useDeleteAsset("watchlist");
 
-  // UI State
   const formDisclosure = useDisclosure();
   const deleteDisclosure = useDisclosure();
+
   const [editItem, setEditItem] = useState<ITvShowData | null>(null);
   const [deleteItem, setDeleteItem] = useState<ITvShowData | null>(null);
 
-  // Search Hook
   const { searchTerm, filteredData, handleSearchChange } = useAssetSearch({
     data: tvShows,
     searchKey: "title",
     onFilterChange: () => resetPagination(),
   });
 
-  // Pagination Hook
   const {
     currentPage,
     totalPages,
@@ -58,7 +59,6 @@ export const TvShowsPage = () => {
     itemsPerPage: ITEMS_PER_PAGE,
   });
 
-  // Event Handlers
   const openCreate = () => {
     setEditItem(null);
     formDisclosure.open();
