@@ -3,7 +3,7 @@ import {
   useDeleteAsset,
   useSearchAssets,
   useUpdateAsset,
-} from "@/hooks/useAssets";
+} from "@/hooks/use-assets";
 import {
   IEpisodeData,
   ISeasonData,

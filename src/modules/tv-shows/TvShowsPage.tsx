@@ -3,7 +3,7 @@ import {
   useDeleteAsset,
   useSearchAssets,
   useUpdateAsset,
-} from "@/hooks/useAssets";
+} from "@/hooks/use-assets";
 import { cn } from "@/lib/lib";
 import { Heart, Pencil, Plus, Search, Trash2 } from "lucide-react";
 import { useMemo, useState } from "react";

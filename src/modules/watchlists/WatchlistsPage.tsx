@@ -3,7 +3,7 @@ import {
   useDeleteAsset,
   useSearchAssets,
   useUpdateAsset,
-} from "@/hooks/useAssets";
+} from "@/hooks/use-assets";
 import { Pencil, Plus, Search, Trash2, Tv } from "lucide-react";
 import { useMemo, useState } from "react";
 import { ConfirmDialog } from "../../components/ConfirmDialog";

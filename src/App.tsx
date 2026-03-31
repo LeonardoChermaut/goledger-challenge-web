@@ -5,10 +5,10 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { AppHeader } from "./components/AppHeader";
 import { EpisodesPage } from "./modules/episodes/EpisodesPage";
+import { NotFound } from "./modules/not-found/NotFoundPage";
 import { SeasonsPage } from "./modules/seasons/SeasonsPage";
 import { TvShowsPage } from "./modules/tv-shows/TvShowsPage";
 import { WatchlistsPage } from "./modules/watchlists/WatchlistsPage";
-import { NotFound } from "./pages/NotFound";
 
 const queryClient = new QueryClient({
   defaultOptions: {
