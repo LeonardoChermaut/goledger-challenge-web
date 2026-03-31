@@ -13,7 +13,7 @@ import {
   ITvShowData,
 } from "@/shared/interfaces/interface";
 import { Plus } from "lucide-react";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { ConfirmDialog } from "../../components/ConfirmDialog";
 import { Modal } from "../../components/Modal";
 import { PageShell } from "../../components/PageShell";
@@ -47,16 +47,19 @@ export const EpisodesPage = () => {
 
   const getEpisodeSeasonLabel = (ep: IEpisodeData): string => {
     const season = findAssetByKey(seasons, ep.season["@key"]);
-    if (!season) {
-      return "Desconhecido";
-    }
-
+    if (!season) return "Desconhecido";
     const tvShow = findAssetByKey(tvShows, season.tvShow["@key"]);
-
     return formatSeasonLabel(
       tvShow?.title ?? season.tvShow["@key"],
-      season.number,
+      season.number
     );
+  };
+
+  const getTvShowTitleFromEpisode = (ep: IEpisodeData): string => {
+    const season = findAssetByKey(seasons, ep.season["@key"]);
+    if (!season) return "Desconhecido";
+    const tvShow = findAssetByKey(tvShows, season.tvShow["@key"]);
+    return tvShow?.title ?? "Desconhecido";
   };
 
   const { searchTerm, filteredData, handleSearchChange } = useAssetSearch({
@@ -75,6 +78,18 @@ export const EpisodesPage = () => {
     data: filteredData,
     itemsPerPage: ITEMS_PER_PAGE,
   });
+
+  const groupedEpisodes = useMemo(() => {
+    const groups: Record<string, IEpisodeData[]> = {};
+    paginatedData.forEach((ep) => {
+      const showTitle = getTvShowTitleFromEpisode(ep);
+      if (!groups[showTitle]) {
+        groups[showTitle] = [];
+      }
+      groups[showTitle].push(ep);
+    });
+    return Object.entries(groups);
+  }, [paginatedData, seasons, tvShows]);
 
   const openCreate = () => {
     setEditItem(null);
@@ -111,10 +126,8 @@ export const EpisodesPage = () => {
         "@assetType": "seasons" as const,
         "@key": formData.season,
       },
-
       episodeNumber: formData.episodeNumber,
       title: formData.title,
-
       releaseDate: formData.releaseDate
         ? new Date(formData.releaseDate).toISOString()
         : "",
@@ -144,9 +157,7 @@ export const EpisodesPage = () => {
   };
 
   const handleDeleteConfirm = async () => {
-    if (!deleteItem) {
-      return;
-    }
+    if (!deleteItem) return;
 
     await deleteMutation.mutateAsync({
       "@assetType": "episodes",
@@ -179,31 +190,45 @@ export const EpisodesPage = () => {
         className="mb-8"
       />
 
-      <QueryResult
-        loading={isLoading}
-        error={error}
-        empty={filteredData.length === 0}
-        emptyMessage="Nenhum episódio encontrado."
-      >
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {paginatedData.map((ep) => (
-            <EpisodeCard
-              key={ep["@key"]}
-              episode={ep}
-              seasonLabel={getEpisodeSeasonLabel(ep)}
-              onEdit={openEdit}
-              onDelete={openDelete}
-            />
-          ))}
+      <div className="flex flex-col min-h-[60vh]">
+        <div className="flex-grow">
+          <QueryResult
+            loading={isLoading}
+            error={error}
+            empty={filteredData.length === 0}
+            emptyMessage="Nenhum episódio encontrado."
+          >
+            <div className="space-y-12">
+              {groupedEpisodes.map(([showTitle, items], index) => (
+                <div key={showTitle} className="animate-fade-in">
+                  {index > 0 && <hr className="mb-8 border-border/40" />}
+                  <h2 className="mb-6 text-xl font-semibold text-foreground/90">
+                    {showTitle}
+                  </h2>
+                  <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                    {items.map((ep) => (
+                      <EpisodeCard
+                        key={ep["@key"]}
+                        episode={ep}
+                        seasonLabel={getEpisodeSeasonLabel(ep)}
+                        onEdit={openEdit}
+                        onDelete={openDelete}
+                      />
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </QueryResult>
         </div>
-      </QueryResult>
 
-      <Pagination
-        currentPage={currentPage}
-        totalPages={totalPages}
-        onPageChange={onPageChange}
-        className="mt-8"
-      />
+        <Pagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={onPageChange}
+          className="mt-8"
+        />
+      </div>
 
       <Modal
         open={formDisclosure.isOpen}
@@ -221,8 +246,7 @@ export const EpisodesPage = () => {
                     ? editItem.releaseDate.slice(0, 10)
                     : "",
                   description: editItem.description,
-                  rating:
-                    editItem.rating != null ? String(editItem.rating) : "",
+                  rating: editItem.rating != null ? String(editItem.rating) : "",
                 }
               : undefined
           }

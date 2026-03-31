@@ -9,7 +9,7 @@ import { useDisclosure } from "@/hooks/use-disclosure";
 import { usePagination } from "@/hooks/use-pagination";
 import { ISeasonData, ITvShowData } from "@/shared/interfaces/interface";
 import { Plus } from "lucide-react";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { ConfirmDialog } from "../../components/ConfirmDialog";
 import { Modal } from "../../components/Modal";
 import { PageShell } from "../../components/PageShell";
@@ -58,6 +58,22 @@ export const SeasonsPage = () => {
     itemsPerPage: ITEMS_PER_PAGE,
   });
 
+  const groupedSeasons = useMemo(() => {
+    const groups: Record<string, ISeasonData[]> = {};
+
+    paginatedData.forEach((season) => {
+      const title = getTvShowTitle(season, tvShows);
+
+      if (!groups[title]) {
+        groups[title] = [];
+      }
+
+      groups[title].push(season);
+    });
+
+    return Object.entries(groups);
+  }, [paginatedData, tvShows]);
+
   const openCreate = () => {
     setEditItem(null);
     formDisclosure.open();
@@ -90,7 +106,6 @@ export const SeasonsPage = () => {
         "@assetType": "tvShows" as const,
         "@key": formData.tvShow,
       },
-
       number: formData.number,
       year: formData.year,
     };
@@ -149,31 +164,45 @@ export const SeasonsPage = () => {
         className="mb-8"
       />
 
-      <QueryResult
-        loading={isLoading}
-        error={error}
-        empty={filteredData.length === 0}
-        emptyMessage="Nenhuma temporada encontrada."
-      >
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {paginatedData.map((season) => (
-            <SeasonCard
-              key={season["@key"]}
-              season={season}
-              tvShowTitle={getTvShowTitle(season, tvShows)}
-              onEdit={openEdit}
-              onDelete={openDelete}
-            />
-          ))}
+      <div className="flex flex-col min-h-[60vh]">
+        <div className="flex-grow">
+          <QueryResult
+            loading={isLoading}
+            error={error}
+            empty={filteredData.length === 0}
+            emptyMessage="Nenhuma temporada encontrada."
+          >
+            <div className="space-y-12">
+              {groupedSeasons.map(([showTitle, items], index) => (
+                <div key={showTitle} className="animate-fade-in">
+                  {index > 0 && <hr className="mb-8 border-border/40" />}
+                  <h2 className="mb-6 text-xl font-semibold text-foreground/90">
+                    {showTitle}
+                  </h2>
+                  <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                    {items.map((season) => (
+                      <SeasonCard
+                        key={season["@key"]}
+                        season={season}
+                        tvShowTitle={showTitle}
+                        onEdit={openEdit}
+                        onDelete={openDelete}
+                      />
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </QueryResult>
         </div>
-      </QueryResult>
 
-      <Pagination
-        currentPage={currentPage}
-        totalPages={totalPages}
-        onPageChange={onPageChange}
-        className="mt-8"
-      />
+        <Pagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={onPageChange}
+          className="mt-8"
+        />
+      </div>
 
       <Modal
         open={formDisclosure.isOpen}
@@ -198,12 +227,15 @@ export const SeasonsPage = () => {
       </Modal>
 
       <ConfirmDialog
-        open={deleteDisclosure.isOpen}
-        onClose={deleteDisclosure.close}
-        onConfirm={handleDeleteConfirm}
         title="Remover Temporada"
-        message={`Deseja remover a Temporada ${deleteItem?.number} de ${getTvShowTitle(deleteItem!, tvShows)}? Esta ação não pode ser desfeita.`}
+        open={deleteDisclosure.isOpen}
+        onConfirm={handleDeleteConfirm}
+        onClose={deleteDisclosure.close}
         loading={deleteMutation.isPending}
+        message={`Deseja remover a Temporada ${deleteItem?.number} de ${getTvShowTitle(
+          deleteItem!,
+          tvShows,
+        )}? Esta ação não pode ser desfeita.`}
       />
     </PageShell>
   );

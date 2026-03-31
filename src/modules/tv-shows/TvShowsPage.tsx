@@ -9,7 +9,7 @@ import { useDisclosure } from "@/hooks/use-disclosure";
 import { usePagination } from "@/hooks/use-pagination";
 import { ITvShowData, IWatchlistData } from "@/shared/interfaces/interface";
 import { Plus } from "lucide-react";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { ConfirmDialog } from "../../components/ConfirmDialog";
 import { Modal } from "../../components/Modal";
 import { PageShell } from "../../components/PageShell";
@@ -48,6 +48,25 @@ export const TvShowsPage = () => {
     onFilterChange: () => resetPagination(),
   });
 
+  const isFavorite = (showTitle: string) =>
+    watchlists?.some((w) => w.title === showTitle) || false;
+
+  const sortedData = useMemo(() => {
+    return [...filteredData].sort((a, b) => {
+      const aFav = isFavorite(a.title);
+      const bFav = isFavorite(b.title);
+      if (aFav && !bFav) {
+        return -1;
+      }
+
+      if (!aFav && bFav) {
+        return 1;
+      }
+
+      return 0;
+    });
+  }, [filteredData, watchlists]);
+
   const {
     currentPage,
     totalPages,
@@ -55,7 +74,7 @@ export const TvShowsPage = () => {
     onPageChange,
     resetPagination,
   } = usePagination({
-    data: filteredData,
+    data: sortedData,
     itemsPerPage: ITEMS_PER_PAGE,
   });
 
@@ -135,9 +154,6 @@ export const TvShowsPage = () => {
     }
   };
 
-  const isFavorite = (showTitle: string) =>
-    watchlists?.some((w) => w.title === showTitle) || false;
-
   const isSubmitting = createMutation.isPending || updateMutation.isPending;
 
   return (
@@ -160,32 +176,36 @@ export const TvShowsPage = () => {
         className="mb-8"
       />
 
-      <QueryResult
-        loading={isLoading}
-        error={error}
-        empty={filteredData.length === 0}
-        emptyMessage="Nenhum programa de TV encontrado."
-      >
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {paginatedData.map((show) => (
-            <TvShowCard
-              key={show["@key"]}
-              show={show}
-              isFavorite={isFavorite(show.title)}
-              onToggleFavorite={handleToggleFavorite}
-              onEdit={openEdit}
-              onDelete={openDelete}
-            />
-          ))}
+      <div className="flex flex-col min-h-[60vh]">
+        <div className="flex-grow">
+          <QueryResult
+            loading={isLoading}
+            error={error}
+            empty={filteredData.length === 0}
+            emptyMessage="Nenhum programa de TV encontrado."
+          >
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {paginatedData.map((show) => (
+                <TvShowCard
+                  key={show["@key"]}
+                  show={show}
+                  isFavorite={isFavorite(show.title)}
+                  onToggleFavorite={handleToggleFavorite}
+                  onEdit={openEdit}
+                  onDelete={openDelete}
+                />
+              ))}
+            </div>
+          </QueryResult>
         </div>
-      </QueryResult>
 
-      <Pagination
-        currentPage={currentPage}
-        totalPages={totalPages}
-        onPageChange={onPageChange}
-        className="mt-8"
-      />
+        <Pagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={onPageChange}
+          className="mt-8"
+        />
+      </div>
 
       <Modal
         open={formDisclosure.isOpen}
