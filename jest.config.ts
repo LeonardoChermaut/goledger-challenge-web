@@ -8,5 +8,5 @@ export default {
   moduleNameMapper: {
     "^@/(.*)$": "<rootDir>/src/$1",
   },
-  testMatch: ["<rootDir>/src/**/*.spec.ts"],
+  testMatch: ["<rootDir>/src/test/**/*.spec.ts"],
 };
