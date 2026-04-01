@@ -40,9 +40,7 @@ class ApiService extends BaseApiService {
     private readonly baseUrl: string = "",
     private readonly headers: HeadersInit = {
       "Content-Type": "application/json",
-      Authorization:
-        "Basic " +
-        btoa(`${import.meta.env.API_AUTHORIZATION || "goledger:5NxVCAjC"}`), // TODO: Corrigir pra usar o .env
+      Authorization: "Basic " + btoa("goledger:5NxVCAjC"),
     },
   ) {
     super();
