@@ -5,13 +5,13 @@ import { Pagination } from "@/components/Pagination";
 import { QueryResult } from "@/components/QueryResult";
 import { SearchInput } from "@/components/SearchInput";
 import { useAssetSearch } from "@/hooks/use-asset-search";
+import { useAssets } from "@/hooks/use-assets";
 import { useCrudForm } from "@/hooks/use-crud-form";
-import { useAssets, useDeleteAsset } from "@/hooks/use-assets";
 import { useDisclosure } from "@/hooks/use-disclosure";
 import { usePagination } from "@/hooks/use-pagination";
 import {
-  IWatchlistData,
   ITvShowData,
+  IWatchlistData,
   IWatchlistFormData,
   IWatchlistPayload,
 } from "@/shared/interfaces/interface";
@@ -35,7 +35,6 @@ export const WatchlistsPage = () => {
     delete: deleteMutation,
   } = useCrudForm<IWatchlistPayload>({
     assetType: "watchlist",
-    keyFields: ["title"],
   });
 
   const formDisclosure = useDisclosure();
@@ -162,6 +161,7 @@ export const WatchlistsPage = () => {
               : undefined
           }
           tvShows={tvShows}
+          isEditing={!!editItem}
           onSubmit={handleFormSubmit}
           isSubmitting={isSubmitting}
           onCancel={formDisclosure.close}

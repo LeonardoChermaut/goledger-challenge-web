@@ -47,7 +47,6 @@ export const SeasonsPage = () => {
     delete: deleteMutation,
   } = useCrudForm<ISeasonPayload>({
     assetType: "seasons",
-    keyFields: ["number", "tvShow"],
   });
 
   const { searchTerm, filteredData, handleSearchChange } = useAssetSearch({
@@ -231,6 +230,7 @@ export const SeasonsPage = () => {
           onSubmit={handleFormSubmit}
           onCancel={formDisclosure.close}
           isSubmitting={isSubmitting}
+          isEditing={!!editItem}
         />
       </Modal>
 

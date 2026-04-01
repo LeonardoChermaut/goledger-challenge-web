@@ -39,7 +39,6 @@ export const TvShowsPage = () => {
     delete: deleteMutation,
   } = useCrudForm<ITvShowFormData>({
     assetType: "tvShows",
-    keyFields: ["title"],
   });
 
   const { searchTerm, filteredData, handleSearchChange } = useAssetSearch({
@@ -169,6 +168,7 @@ export const TvShowsPage = () => {
           initialData={editItem}
           onSubmit={handleFormSubmit}
           isSubmitting={isSubmitting}
+          isEditing={!!editItem}
           onCancel={formDisclosure.close}
         />
       </Modal>

@@ -10,6 +10,7 @@ type WatchlistFormProps = {
   };
 
   isSubmitting: boolean;
+  isEditing: boolean;
   tvShows: ITvShowData[] | undefined;
 
   onCancel: () => void;
@@ -26,6 +27,7 @@ export const WatchlistForm: FunctionComponent<WatchlistFormProps> = ({
   onSubmit,
   onCancel,
   isSubmitting,
+  isEditing,
 }) => {
   const [formState, setFormState] = useState({
     title: initialData?.title || "",
@@ -78,7 +80,8 @@ export const WatchlistForm: FunctionComponent<WatchlistFormProps> = ({
           value={formState.title}
           onChange={(e) => handleChange("title", e.target.value)}
           required
-          className="w-full rounded-md border border-input bg-secondary px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-inset"
+          disabled={isEditing}
+          className="w-full rounded-md border border-input bg-secondary px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-inset disabled:opacity-50 disabled:cursor-not-allowed"
         />
       </div>
 

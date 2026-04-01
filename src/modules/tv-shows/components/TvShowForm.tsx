@@ -2,6 +2,7 @@ import { ITvShowData } from "@/shared/interfaces/interface";
 import { FunctionComponent, useState } from "react";
 
 type TvShowFormProps = {
+  isEditing: boolean;
   isSubmitting: boolean;
   initialData: ITvShowData | null;
 
@@ -15,6 +16,7 @@ type TvShowFormProps = {
 };
 
 export const TvShowForm: FunctionComponent<TvShowFormProps> = ({
+  isEditing,
   initialData,
   isSubmitting,
   onSubmit,
@@ -57,7 +59,8 @@ export const TvShowForm: FunctionComponent<TvShowFormProps> = ({
           value={formState.title}
           onChange={(e) => handleChange("title", e.target.value)}
           required
-          className="w-full rounded-md border border-input bg-secondary px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+          disabled={isEditing}
+          className="w-full rounded-md border border-input bg-secondary px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-50 disabled:cursor-not-allowed"
         />
       </div>
 

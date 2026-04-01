@@ -5,19 +5,12 @@ import { toast } from "sonner";
 
 interface ICrudFormOptions<T extends object> {
   assetType: string;
-  keyFields: (keyof T)[];
 }
 
 export const useCrudForm = <T extends object>({
   assetType,
-  keyFields,
 }: ICrudFormOptions<T>) => {
   const queryClient = useQueryClient();
-
-  const checkKeyChanged = (original: T | null, updated: T): boolean => {
-    if (!original) return false;
-    return keyFields.some((field) => original[field] !== updated[field]);
-  };
 
   const invalidateAndNotify = (message: string) => {
     queryClient.invalidateQueries({ queryKey: ["assets", assetType] });
@@ -54,29 +47,9 @@ export const useCrudForm = <T extends object>({
       ),
   });
 
-  const handleEdit = useMutation({
-    mutationFn: async ({ oldKey, newData }: { oldKey: string; newData: T }) => {
-      await api.delete(routes.api.methods.deleteAsset, {
-        key: { "@assetType": assetType, "@key": oldKey },
-      });
-      await api.post(routes.api.methods.createAsset, {
-        asset: [{ "@assetType": assetType, ...newData }],
-      });
-    },
-    onSuccess: () => invalidateAndNotify("Atualizado com sucesso!"),
-    onError: () => toast.error("Erro ao atualizar."),
-  });
-
   const submit = async (originalItem: T | null, formData: T) => {
     if (!originalItem) {
       return handleCreate.mutateAsync(formData);
-    }
-
-    if (checkKeyChanged(originalItem, formData)) {
-      return handleEdit.mutateAsync({
-        oldKey: (originalItem as T & { "@key": string })["@key"],
-        newData: formData,
-      });
     }
 
     return handleUpdate.mutateAsync({
@@ -87,8 +60,7 @@ export const useCrudForm = <T extends object>({
 
   return {
     submit,
-    isSubmitting:
-      handleCreate.isPending || handleUpdate.isPending || handleEdit.isPending,
+    isSubmitting: handleCreate.isPending || handleUpdate.isPending,
     delete: handleDelete,
   };
 };

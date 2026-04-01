@@ -10,6 +10,7 @@ type SeasonFormProps = {
   };
 
   isSubmitting: boolean;
+  isEditing: boolean;
   tvShows: ITvShowData[] | undefined;
 
   onCancel: () => void;
@@ -20,6 +21,7 @@ export const SeasonForm: FunctionComponent<SeasonFormProps> = ({
   tvShows,
   initialData,
   isSubmitting,
+  isEditing,
   onSubmit,
   onCancel,
 }) => {
@@ -70,6 +72,7 @@ export const SeasonForm: FunctionComponent<SeasonFormProps> = ({
               checked={formState.tvShow === s["@key"]}
               onChange={() => handleChange("tvShow", s["@key"])}
               className="rounded-full border-input accent-primary h-4 w-4"
+              disabled={isEditing}
             />
             {s.title}
           </label>
@@ -85,7 +88,8 @@ export const SeasonForm: FunctionComponent<SeasonFormProps> = ({
           value={formState.number}
           onChange={(e) => handleChange("number", e.target.value)}
           required
-          className="w-full rounded-md border border-input bg-secondary px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+          disabled={isEditing}
+          className="w-full rounded-md border border-input bg-secondary px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-50 disabled:cursor-not-allowed"
         />
       </div>
 
