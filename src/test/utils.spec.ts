@@ -8,7 +8,7 @@ import {
   isValidRating,
   isValidReleaseYear,
   sortByFavorite,
-} from "./utils";
+} from "../shared/utils/utils";
 
 describe("Utils - Validation Functions", () => {
   describe("isValidRating", () => {
