@@ -1,9 +1,9 @@
+import { DropdownMenu } from "@/components/DropdownMenu";
 import { cn } from "@/lib/lib";
+import { ITvShowData } from "@/shared/interfaces/interface";
+import { getAgeRecommendationColor } from "@/shared/utils/utils";
 import { Heart, Pencil, Trash2 } from "lucide-react";
 import { FunctionComponent } from "react";
-import { DropdownMenu } from "../../../components/DropdownMenu";
-import { ITvShowData } from "../../../shared/interfaces/interface";
-import { getAgeRecommendationColor } from "../../../shared/utils/utils";
 
 type TvShowCardProps = {
   show: ITvShowData;

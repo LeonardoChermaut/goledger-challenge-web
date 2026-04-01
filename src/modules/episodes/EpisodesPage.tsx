@@ -1,30 +1,34 @@
+import { ConfirmDialog } from "@/components/ConfirmDialog";
+import { Modal } from "@/components/Modal";
+import { PageShell } from "@/components/PageShell";
+import { Pagination } from "@/components/Pagination";
+import { QueryResult } from "@/components/QueryResult";
+import { SearchInput } from "@/components/SearchInput";
 import { useAssetSearch } from "@/hooks/use-asset-search";
-import {
-  useAssets,
-  useCreateAsset,
-  useDeleteAsset,
-  useUpdateAsset,
-} from "@/hooks/use-assets";
+import { useAssets, useCreateAsset, useDeleteAsset } from "@/hooks/use-assets";
+import { useCrudForm } from "@/hooks/use-crud-form";
 import { useDisclosure } from "@/hooks/use-disclosure";
+import { useGroupedAssets } from "@/hooks/use-grouped-assets";
 import { usePagination } from "@/hooks/use-pagination";
 import {
   IEpisodeData,
+  IEpisodeFormData,
+  IEpisodePayload,
   ISeasonData,
   ITvShowData,
+  IWatchlistData,
 } from "@/shared/interfaces/interface";
+import {
+  findAssetByKey,
+  getEpisodeSeasonLabel,
+  getTvShowAgeFromEpisode,
+  getTvShowTitleFromEpisode,
+  sortByFavorite,
+} from "@/shared/utils/utils";
 import { Plus } from "lucide-react";
-import { useMemo, useState } from "react";
-import { ConfirmDialog } from "../../components/ConfirmDialog";
-import { Modal } from "../../components/Modal";
-import { PageShell } from "../../components/PageShell";
-import { Pagination } from "../../components/Pagination";
-import { QueryResult } from "../../components/QueryResult";
-import { SearchInput } from "../../components/SearchInput";
-import { findAssetByKey, formatSeasonLabel } from "../../shared/utils/utils";
+import { useState } from "react";
 import { EpisodeCard } from "./components/EpisodeCard";
 import { EpisodeForm } from "./components/EpisodeForm";
-
-const ITEMS_PER_PAGE = 9;
 
 export const EpisodesPage = () => {
   const {
@@ -34,10 +38,10 @@ export const EpisodesPage = () => {
   } = useAssets<IEpisodeData>("episodes");
   const { data: seasons } = useAssets<ISeasonData>("seasons");
   const { data: tvShows } = useAssets<ITvShowData>("tvShows");
+  const { data: watchlists } = useAssets<IWatchlistData>("watchlist");
 
-  const createMutation = useCreateAsset<IEpisodeData>("episodes");
-  const updateMutation = useUpdateAsset("episodes");
-  const deleteMutation = useDeleteAsset("episodes");
+  const deleteWatchlist = useDeleteAsset("watchlist");
+  const createWatchlist = useCreateAsset("watchlist");
 
   const formDisclosure = useDisclosure();
   const deleteDisclosure = useDisclosure();
@@ -45,22 +49,14 @@ export const EpisodesPage = () => {
   const [editItem, setEditItem] = useState<IEpisodeData | null>(null);
   const [deleteItem, setDeleteItem] = useState<IEpisodeData | null>(null);
 
-  const getEpisodeSeasonLabel = (ep: IEpisodeData): string => {
-    const season = findAssetByKey(seasons, ep.season["@key"]);
-    if (!season) return "Desconhecido";
-    const tvShow = findAssetByKey(tvShows, season.tvShow["@key"]);
-    return formatSeasonLabel(
-      tvShow?.title ?? season.tvShow["@key"],
-      season.number,
-    );
-  };
-
-  const getTvShowTitleFromEpisode = (ep: IEpisodeData): string => {
-    const season = findAssetByKey(seasons, ep.season["@key"]);
-    if (!season) return "Desconhecido";
-    const tvShow = findAssetByKey(tvShows, season.tvShow["@key"]);
-    return tvShow?.title ?? "Desconhecido";
-  };
+  const {
+    submit,
+    isSubmitting,
+    delete: deleteMutation,
+  } = useCrudForm<IEpisodePayload>({
+    assetType: "episodes",
+    keyFields: ["season", "episodeNumber"],
+  });
 
   const { searchTerm, filteredData, handleSearchChange } = useAssetSearch({
     data: episodes,
@@ -74,22 +70,59 @@ export const EpisodesPage = () => {
     paginatedData,
     onPageChange,
     resetPagination,
-  } = usePagination({
-    data: filteredData,
-    itemsPerPage: ITEMS_PER_PAGE,
+  } = usePagination({ data: filteredData });
+
+  const isEpisodeFavorite = (episode: IEpisodeData): boolean => {
+    const season = findAssetByKey(seasons, episode.season["@key"]);
+
+    if (!season) {
+      return false;
+    }
+
+    const tvShow = findAssetByKey(tvShows, season.tvShow["@key"]);
+
+    if (!tvShow) {
+      return false;
+    }
+
+    return watchlists?.some((watchlist) => watchlist.title === tvShow.title) || false;
+  };
+
+  const sortedEpisodes = sortByFavorite(paginatedData, isEpisodeFavorite);
+
+  const { groups: groupedEpisodes } = useGroupedAssets({
+    data: sortedEpisodes,
+    groupBy: (episode) =>
+      getTvShowTitleFromEpisode(episode, seasons ?? [], tvShows ?? []),
   });
 
-  const groupedEpisodes = useMemo(() => {
-    const groups: Record<string, IEpisodeData[]> = {};
-    paginatedData.forEach((ep) => {
-      const showTitle = getTvShowTitleFromEpisode(ep);
-      if (!groups[showTitle]) {
-        groups[showTitle] = [];
-      }
-      groups[showTitle].push(ep);
-    });
-    return Object.entries(groups);
-  }, [paginatedData, seasons, tvShows]);
+  const handleToggleFavorite = async (ep: IEpisodeData) => {
+    const season = findAssetByKey(seasons, ep.season["@key"]);
+    if (!season) {
+      return;
+    }
+
+    const tvShow = findAssetByKey(tvShows, season.tvShow["@key"]);
+    if (!tvShow) {
+      return;
+    }
+
+    const favoritesList = watchlists?.find((w) => w.title === tvShow.title);
+
+    if (favoritesList) {
+      await deleteWatchlist.mutateAsync({
+        "@assetType": "watchlist",
+        "@key": favoritesList["@key"],
+      });
+    } else {
+      await createWatchlist.mutateAsync({
+        "@assetType": "watchlist",
+        title: tvShow.title,
+        description: tvShow.description,
+        tvShows: [{ "@assetType": "tvShows", "@key": tvShow["@key"] }],
+      });
+    }
+  };
 
   const openCreate = () => {
     setEditItem(null);
@@ -106,26 +139,9 @@ export const EpisodesPage = () => {
     deleteDisclosure.open();
   };
 
-  const handleFormSubmit = async (formData: {
-    season: string;
-    episodeNumber: number;
-    title: string;
-    releaseDate: string;
-    description: string;
-    rating?: number;
-  }) => {
-    const isNew = !editItem;
-    const hasKeyChanged =
-      editItem &&
-      (formData.season !== editItem.season["@key"] ||
-        formData.episodeNumber !== editItem.episodeNumber);
-
-    const payload = {
-      "@assetType": "episodes" as const,
-      season: {
-        "@assetType": "seasons" as const,
-        "@key": formData.season,
-      },
+  const handleFormSubmit = async (formData: IEpisodeFormData) => {
+    const payload: IEpisodePayload = {
+      season: { "@assetType": "seasons", "@key": formData.season },
       episodeNumber: formData.episodeNumber,
       title: formData.title,
       releaseDate: formData.releaseDate
@@ -135,40 +151,19 @@ export const EpisodesPage = () => {
       rating: formData.rating,
     };
 
-    if (isNew || hasKeyChanged) {
-      if (hasKeyChanged) {
-        await deleteMutation.mutateAsync({
-          "@assetType": "episodes",
-          "@key": editItem["@key"],
-        });
-      }
-      await createMutation.mutateAsync(payload);
-    } else {
-      await updateMutation.mutateAsync({
-        "@key": editItem["@key"],
-        ...payload,
-        releaseDate: formData.releaseDate
-          ? new Date(formData.releaseDate).toISOString()
-          : undefined,
-      });
-    }
-
+    await submit(editItem as IEpisodePayload | null, payload);
     formDisclosure.close();
   };
 
   const handleDeleteConfirm = async () => {
-    if (!deleteItem) return;
+    if (!deleteItem) {
+      return;
+    }
 
-    await deleteMutation.mutateAsync({
-      "@assetType": "episodes",
-      "@key": deleteItem["@key"],
-    });
-
+    await deleteMutation.mutateAsync(deleteItem["@key"]);
     deleteDisclosure.close();
     setDeleteItem(null);
   };
-
-  const isSubmitting = createMutation.isPending || updateMutation.isPending;
 
   return (
     <PageShell
@@ -205,14 +200,26 @@ export const EpisodesPage = () => {
                   <h2 className="mb-6 text-xl font-semibold text-foreground/90">
                     {showTitle}
                   </h2>
+
                   <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                    {items.map((ep) => (
+                    {items.map((episode) => (
                       <EpisodeCard
-                        key={ep["@key"]}
-                        episode={ep}
-                        seasonLabel={getEpisodeSeasonLabel(ep)}
+                        key={episode["@key"]}
+                        episode={episode}
                         onEdit={openEdit}
                         onDelete={openDelete}
+                        isFavorite={isEpisodeFavorite(episode)}
+                        onToggleFavorite={handleToggleFavorite}
+                        seasonLabel={getEpisodeSeasonLabel(
+                          episode,
+                          seasons ?? [],
+                          tvShows ?? [],
+                        )}
+                        tvShowAge={getTvShowAgeFromEpisode(
+                          episode,
+                          seasons ?? [],
+                          tvShows ?? [],
+                        )}
                       />
                     ))}
                   </div>

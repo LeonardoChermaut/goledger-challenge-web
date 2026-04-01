@@ -1,7 +1,7 @@
+import { DropdownMenu } from "@/components/DropdownMenu";
+import { IWatchlistData } from "@/shared/interfaces/interface";
 import { Pencil, Trash2, Tv } from "lucide-react";
 import { FunctionComponent } from "react";
-import { DropdownMenu } from "../../../components/DropdownMenu";
-import { IWatchlistData } from "../../../shared/interfaces/interface";
 
 type WatchlistCardProps = {
   watchlist: IWatchlistData;

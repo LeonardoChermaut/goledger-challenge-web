@@ -1,6 +1,6 @@
+import { SearchableSelect } from "@/components/SearchableSelect";
+import { ITvShowData } from "@/shared/interfaces/interface";
 import { FormEvent, FunctionComponent, useMemo, useState } from "react";
-import { SearchableSelect } from "../../../components/SearchableSelect";
-import { ITvShowData } from "../../../shared/interfaces/interface";
 
 type SeasonFormProps = {
   initialData?: {
@@ -17,11 +17,11 @@ type SeasonFormProps = {
 };
 
 export const SeasonForm: FunctionComponent<SeasonFormProps> = ({
-  initialData,
   tvShows,
+  initialData,
+  isSubmitting,
   onSubmit,
   onCancel,
-  isSubmitting,
 }) => {
   const [formState, setFormState] = useState({
     searchModalTerm: "",

@@ -1,22 +1,23 @@
+import { ConfirmDialog } from "@/components/ConfirmDialog";
+import { Modal } from "@/components/Modal";
+import { PageShell } from "@/components/PageShell";
+import { Pagination } from "@/components/Pagination";
+import { QueryResult } from "@/components/QueryResult";
+import { SearchInput } from "@/components/SearchInput";
 import { useAssetSearch } from "@/hooks/use-asset-search";
-import {
-  useAssets,
-  useCreateAsset,
-  useDeleteAsset,
-  useUpdateAsset,
-} from "@/hooks/use-assets";
+import { useCrudForm } from "@/hooks/use-crud-form";
+import { useAssets, useDeleteAsset } from "@/hooks/use-assets";
 import { useDisclosure } from "@/hooks/use-disclosure";
 import { usePagination } from "@/hooks/use-pagination";
-import { ITvShowData, IWatchlistData } from "@/shared/interfaces/interface";
+import {
+  IWatchlistData,
+  ITvShowData,
+  IWatchlistFormData,
+  IWatchlistPayload,
+} from "@/shared/interfaces/interface";
+import { findAssetByKey } from "@/shared/utils/utils";
 import { Plus } from "lucide-react";
 import { useState } from "react";
-import { ConfirmDialog } from "../../components/ConfirmDialog";
-import { Modal } from "../../components/Modal";
-import { PageShell } from "../../components/PageShell";
-import { Pagination } from "../../components/Pagination";
-import { QueryResult } from "../../components/QueryResult";
-import { SearchInput } from "../../components/SearchInput";
-import { findAssetByKey } from "../../shared/utils/utils";
 import { WatchlistCard } from "./components/WatchlistCard";
 import { WatchlistForm } from "./components/WatchlistForm";
 
@@ -28,9 +29,10 @@ export const WatchlistsPage = () => {
   } = useAssets<IWatchlistData>("watchlist");
   const { data: tvShows } = useAssets<ITvShowData>("tvShows");
 
-  const createMutation = useCreateAsset<IWatchlistData>("watchlist");
-  const updateMutation = useUpdateAsset("watchlist");
-  const deleteMutation = useDeleteAsset("watchlist");
+  const { submit, isSubmitting, delete: deleteMutation } = useCrudForm<IWatchlistPayload>({
+    assetType: "watchlist",
+    keyFields: ["title"],
+  });
 
   const formDisclosure = useDisclosure();
   const deleteDisclosure = useDisclosure();
@@ -53,9 +55,7 @@ export const WatchlistsPage = () => {
     paginatedData,
     onPageChange,
     resetPagination,
-  } = usePagination({
-    data: filteredData,
-  });
+  } = usePagination({ data: filteredData });
 
   const openCreate = () => {
     setEditItem(null);
@@ -72,58 +72,26 @@ export const WatchlistsPage = () => {
     deleteDisclosure.open();
   };
 
-  const handleFormSubmit = async (formData: {
-    title: string;
-    description: string;
-    tvShows: string[];
-  }) => {
-    const showsPayload = formData.tvShows.map((key) => ({
-      "@assetType": "tvShows" as const,
-      "@key": key,
-    }));
-
-    const isNew = !editItem;
-    const hasKeyChanged = editItem && formData.title !== editItem.title;
-
-    const basePayload = {
-      "@assetType": "watchlist" as const,
+  const handleFormSubmit = async (formData: IWatchlistFormData) => {
+    const payload: IWatchlistPayload = {
       title: formData.title,
       description: formData.description,
-      tvShows: showsPayload,
+      tvShows: formData.tvShows.map((key) => ({
+        "@assetType": "tvShows" as const,
+        "@key": key,
+      })),
     };
 
-    if (isNew || hasKeyChanged) {
-      if (hasKeyChanged) {
-        await deleteMutation.mutateAsync({
-          "@assetType": "watchlist",
-          "@key": editItem["@key"],
-        });
-      }
-      await createMutation.mutateAsync(basePayload);
-    } else {
-      await updateMutation.mutateAsync({
-        "@key": editItem["@key"],
-        description: formData.description,
-        tvShows: showsPayload,
-      });
-    }
-
+    await submit(editItem as IWatchlistPayload | null, payload);
     formDisclosure.close();
   };
 
   const handleDeleteConfirm = async () => {
     if (!deleteItem) return;
-
-    await deleteMutation.mutateAsync({
-      "@assetType": "watchlist",
-      "@key": deleteItem["@key"],
-    });
-
+    await deleteMutation.mutateAsync(deleteItem["@key"]);
     deleteDisclosure.close();
     setDeleteItem(null);
   };
-
-  const isSubmitting = createMutation.isPending || updateMutation.isPending;
 
   return (
     <PageShell
@@ -184,24 +152,25 @@ export const WatchlistsPage = () => {
               ? {
                   title: editItem.title,
                   description: editItem.description || "",
-                  tvShows: editItem.tvShows?.map((s) => s["@key"]) || [],
+                  tvShows:
+                    editItem.tvShows?.map((tvshow) => tvshow["@key"]) || [],
                 }
               : undefined
           }
           tvShows={tvShows}
           onSubmit={handleFormSubmit}
-          onCancel={formDisclosure.close}
           isSubmitting={isSubmitting}
+          onCancel={formDisclosure.close}
         />
       </Modal>
 
       <ConfirmDialog
         open={deleteDisclosure.isOpen}
-        onClose={deleteDisclosure.close}
         onConfirm={handleDeleteConfirm}
+        onClose={deleteDisclosure.close}
+        loading={deleteMutation.isPending}
         title="Remover Lista de Favoritos"
         message={`Deseja remover "${deleteItem?.title}"? Esta ação não pode ser desfeita.`}
-        loading={deleteMutation.isPending}
       />
     </PageShell>
   );

@@ -1,38 +1,54 @@
+import { ConfirmDialog } from "@/components/ConfirmDialog";
+import { Modal } from "@/components/Modal";
+import { PageShell } from "@/components/PageShell";
+import { Pagination } from "@/components/Pagination";
+import { QueryResult } from "@/components/QueryResult";
+import { SearchInput } from "@/components/SearchInput";
 import { useAssetSearch } from "@/hooks/use-asset-search";
-import {
-  useAssets,
-  useCreateAsset,
-  useDeleteAsset,
-  useUpdateAsset,
-} from "@/hooks/use-assets";
+import { useAssets, useCreateAsset, useDeleteAsset } from "@/hooks/use-assets";
+import { useCrudForm } from "@/hooks/use-crud-form";
 import { useDisclosure } from "@/hooks/use-disclosure";
+import { useGroupedAssets } from "@/hooks/use-grouped-assets";
 import { usePagination } from "@/hooks/use-pagination";
-import { ISeasonData, ITvShowData } from "@/shared/interfaces/interface";
+import {
+  ISeasonData,
+  ISeasonFormData,
+  ISeasonPayload,
+  ITvShowData,
+  IWatchlistData,
+} from "@/shared/interfaces/interface";
+import {
+  getTvShowAge,
+  getTvShowTitle,
+  sortByFavorite,
+} from "@/shared/utils/utils";
 import { Plus } from "lucide-react";
-import { useMemo, useState } from "react";
-import { ConfirmDialog } from "../../components/ConfirmDialog";
-import { Modal } from "../../components/Modal";
-import { PageShell } from "../../components/PageShell";
-import { Pagination } from "../../components/Pagination";
-import { QueryResult } from "../../components/QueryResult";
-import { SearchInput } from "../../components/SearchInput";
-import { getTvShowTitle } from "../../shared/utils/utils";
+import { useState } from "react";
 import { SeasonCard } from "./components/SeasonCard";
 import { SeasonForm } from "./components/SeasonForm";
 
 export const SeasonsPage = () => {
   const { data: seasons, isLoading, error } = useAssets<ISeasonData>("seasons");
   const { data: tvShows } = useAssets<ITvShowData>("tvShows");
+  const { data: watchlists } = useAssets<IWatchlistData>("watchlist");
 
-  const createMutation = useCreateAsset<ISeasonData>("seasons");
-  const updateMutation = useUpdateAsset("seasons");
-  const deleteMutation = useDeleteAsset("seasons");
+  const deleteWatchlist = useDeleteAsset("watchlist");
+  const createWatchlist = useCreateAsset("watchlist");
 
   const formDisclosure = useDisclosure();
   const deleteDisclosure = useDisclosure();
 
   const [editItem, setEditItem] = useState<ISeasonData | null>(null);
   const [deleteItem, setDeleteItem] = useState<ISeasonData | null>(null);
+
+  const {
+    submit,
+    isSubmitting,
+    delete: deleteMutation,
+  } = useCrudForm<ISeasonPayload>({
+    assetType: "seasons",
+    keyFields: ["number", "tvShow"],
+  });
 
   const { searchTerm, filteredData, handleSearchChange } = useAssetSearch({
     data: seasons,
@@ -47,25 +63,55 @@ export const SeasonsPage = () => {
     paginatedData,
     onPageChange,
     resetPagination,
-  } = usePagination({
-    data: filteredData,
+  } = usePagination({ data: filteredData });
+
+  const isSeasonFavorite = (season: ISeasonData): boolean => {
+    const tvShow = tvShows?.find(
+      (item) => item["@key"] === season.tvShow["@key"],
+    );
+
+    if (!tvShow) {
+      return false;
+    }
+
+    return (
+      watchlists?.some((watchlist) => watchlist.title === tvShow.title) || false
+    );
+  };
+
+  const sortedSeasons = sortByFavorite(paginatedData, isSeasonFavorite);
+
+  const { groups: groupedSeasons } = useGroupedAssets({
+    data: sortedSeasons,
+    groupBy: (season) => getTvShowTitle(season, tvShows),
   });
 
-  const groupedSeasons = useMemo(() => {
-    const groups: Record<string, ISeasonData[]> = {};
+  const handleToggleFavorite = async (season: ISeasonData) => {
+    const tvShow = tvShows?.find(
+      (tvShow) => tvShow["@key"] === season.tvShow["@key"],
+    );
+    if (!tvShow) {
+      return;
+    }
 
-    paginatedData.forEach((season) => {
-      const title = getTvShowTitle(season, tvShows);
+    const favoritesList = watchlists?.find(
+      (watchlist) => watchlist.title === tvShow.title,
+    );
 
-      if (!groups[title]) {
-        groups[title] = [];
-      }
-
-      groups[title].push(season);
-    });
-
-    return Object.entries(groups);
-  }, [paginatedData, tvShows]);
+    if (favoritesList) {
+      await deleteWatchlist.mutateAsync({
+        "@assetType": "watchlist",
+        "@key": favoritesList["@key"],
+      });
+    } else {
+      await createWatchlist.mutateAsync({
+        "@assetType": "watchlist",
+        title: tvShow.title,
+        description: tvShow.description,
+        tvShows: [{ "@assetType": "tvShows", "@key": tvShow["@key"] }],
+      });
+    }
+  };
 
   const openCreate = () => {
     setEditItem(null);
@@ -82,42 +128,14 @@ export const SeasonsPage = () => {
     deleteDisclosure.open();
   };
 
-  const handleFormSubmit = async (formData: {
-    tvShow: string;
-    number: number;
-    year: number;
-  }) => {
-    const isNew = !editItem;
-    const hasKeyChanged =
-      editItem &&
-      (formData.tvShow !== editItem.tvShow["@key"] ||
-        formData.number !== editItem.number);
-
-    const payload = {
-      "@assetType": "seasons" as const,
-      tvShow: {
-        "@assetType": "tvShows" as const,
-        "@key": formData.tvShow,
-      },
+  const handleFormSubmit = async (formData: ISeasonFormData) => {
+    const payload: ISeasonPayload = {
+      tvShow: { "@assetType": "tvShows", "@key": formData.tvShow },
       number: formData.number,
       year: formData.year,
     };
 
-    if (isNew || hasKeyChanged) {
-      if (hasKeyChanged) {
-        await deleteMutation.mutateAsync({
-          "@assetType": "seasons",
-          "@key": editItem["@key"],
-        });
-      }
-      await createMutation.mutateAsync(payload);
-    } else {
-      await updateMutation.mutateAsync({
-        "@key": editItem["@key"],
-        ...payload,
-      });
-    }
-
+    await submit(editItem as ISeasonPayload | null, payload);
     formDisclosure.close();
   };
 
@@ -126,16 +144,10 @@ export const SeasonsPage = () => {
       return;
     }
 
-    await deleteMutation.mutateAsync({
-      "@assetType": "seasons",
-      "@key": deleteItem["@key"],
-    });
-
+    await deleteMutation.mutateAsync(deleteItem["@key"]);
     deleteDisclosure.close();
     setDeleteItem(null);
   };
-
-  const isSubmitting = createMutation.isPending || updateMutation.isPending;
 
   return (
     <PageShell
@@ -177,9 +189,12 @@ export const SeasonsPage = () => {
                       <SeasonCard
                         key={season["@key"]}
                         season={season}
-                        tvShowTitle={showTitle}
                         onEdit={openEdit}
                         onDelete={openDelete}
+                        tvShowTitle={showTitle}
+                        isFavorite={isSeasonFavorite(season)}
+                        onToggleFavorite={handleToggleFavorite}
+                        tvShowAge={getTvShowAge(season, tvShows ?? [])}
                       />
                     ))}
                   </div>

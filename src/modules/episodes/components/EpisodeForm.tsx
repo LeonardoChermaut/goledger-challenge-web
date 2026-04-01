@@ -1,7 +1,7 @@
+import { SearchableSelect } from "@/components/SearchableSelect";
+import { ISeasonData, ITvShowData } from "@/shared/interfaces/interface";
+import { isValidRating } from "@/shared/utils/utils";
 import { FormEvent, FunctionComponent, useMemo, useState } from "react";
-import { SearchableSelect } from "../../../components/SearchableSelect";
-import { ISeasonData, ITvShowData } from "../../../shared/interfaces/interface";
-import { isValidRating } from "../../../shared/utils/utils";
 
 type EpisodeFormProps = {
   initialData?: {

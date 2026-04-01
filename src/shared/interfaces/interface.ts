@@ -65,3 +65,51 @@ export interface IUpdateAssetPayloadData {
 export interface IDeleteAssetPayloadData {
   key: Record<string, unknown>;
 }
+
+export interface ITvShowFormData {
+  title: string;
+  description: string;
+  recommendedAge: number;
+}
+
+export interface ISeasonFormData {
+  tvShow: string;
+  number: number;
+  year: number;
+}
+
+export interface IEpisodeFormData {
+  season: string;
+  episodeNumber: number;
+  title: string;
+  releaseDate: string;
+  description: string;
+  rating?: number;
+}
+
+export interface IWatchlistFormData {
+  title: string;
+  description: string;
+  tvShows: string[];
+}
+
+export interface IWatchlistPayload {
+  title: string;
+  description: string;
+  tvShows: Array<{ "@assetType": "tvShows"; "@key": string }>;
+}
+
+export interface ISeasonPayload {
+  tvShow: { "@assetType": "tvShows"; "@key": string };
+  number: number;
+  year: number;
+}
+
+export interface IEpisodePayload {
+  season: { "@assetType": "seasons"; "@key": string };
+  episodeNumber: number;
+  title: string;
+  releaseDate: string;
+  description: string;
+  rating?: number;
+}

@@ -1,33 +1,67 @@
-import { ISeasonData, ITvShowData } from '../interfaces/interface';
+import {
+  IEpisodeData,
+  ISeasonData,
+  ITvShowData,
+} from "../interfaces/interface";
 
 export const isValidRating = (value: number): boolean => {
-  if (value < 0 || value > 10) return false;
+  if (value < 0 || value > 10) {
+    return false;
+  }
 
   const stringValue = value.toString();
-  const decimalPart = stringValue.split('.')[1];
+  const decimalPart = stringValue.split(".")[1];
 
   return !decimalPart || decimalPart.length === 1;
 };
 
+export const isValidAge = (age: number): boolean => age >= 0 && age <= 18;
+
+export const isValidEpisodeRating = (rating: number): boolean =>
+  rating >= 0 && rating <= 10;
+
+export const isValidReleaseYear = (
+  itemYear: number,
+  seriesYear: number,
+): boolean => itemYear >= seriesYear;
+
 export const getAgeRecommendationColor = (age: number): string => {
-  if (age <= 10) return "bg-green-500/15 text-green-600";
-  if (age < 18) return "bg-yellow-500/15 text-yellow-600";
+  if (age <= 10) {
+    return "bg-green-500/15 text-green-600";
+  }
+
+  if (age < 18) {
+    return "bg-yellow-500/15 text-yellow-600";
+  }
+
   return "bg-red-500/15 text-red-600";
+};
+
+export const getRatingColor = (rating: number): string => {
+  if (rating >= 8) {
+    return "bg-green-500/20 text-green-600";
+  }
+
+  if (rating >= 7) {
+    return "bg-green-400/20 text-green-700";
+  }
+
+  if (rating >= 5) {
+    return "bg-yellow-500/20 text-yellow-600";
+  }
+
+  return "bg-red-400/20 text-red-600";
 };
 
 export const findAssetByKey = <T extends { "@key": string }>(
   assets: T[] | undefined,
-  key: string
-): T | undefined => {
-  return assets?.find((a) => a["@key"] === key);
-};
+  key: string,
+): T | undefined => assets?.find((asset) => asset["@key"] === key);
 
 export const formatSeasonLabel = (
   showTitle: string | undefined,
-  seasonNumber: number | string
-): string => {
-  return `${showTitle ?? "Desconhecido"} - Temporada ${seasonNumber}`;
-};
+  seasonNumber: number | string,
+): string => `${showTitle ?? "Desconhecido"} - Temporada ${seasonNumber}`;
 
 export const getTvShowTitle = (
   season: ISeasonData,
@@ -35,3 +69,132 @@ export const getTvShowTitle = (
 ): string =>
   (season && findAssetByKey(tvShows, season.tvShow["@key"])?.title) ||
   season?.tvShow["@key"];
+
+export const getTvShowAge = (
+  season: ISeasonData,
+  tvShows: ITvShowData[],
+): number | undefined =>
+  findAssetByKey(tvShows, season.tvShow["@key"])?.recommendedAge;
+
+export const getEpisodeTvShowAge = (
+  episodeSeasonKey: string,
+  seasons: ISeasonData[],
+  tvShows: ITvShowData[],
+): number | undefined => {
+  const season = findAssetByKey(seasons, episodeSeasonKey);
+
+  if (!season) {
+    return undefined;
+  }
+
+  return getTvShowAge(season, tvShows);
+};
+
+export const getTvShowAgeFromEpisode = (
+  episode: IEpisodeData,
+  seasons: ISeasonData[],
+  tvShows: ITvShowData[],
+): number | undefined =>
+  getEpisodeTvShowAge(episode.season["@key"], seasons, tvShows);
+
+export const formatReleaseYear = (dateString: string): string => {
+  if (!dateString) {
+    return "Sem data";
+  }
+
+  const date = new Date(dateString);
+
+  if (isNaN(date.getTime())) {
+    return "Sem data";
+  }
+
+  return date.getFullYear().toString();
+};
+
+export const formatReleaseDate = (dateString: string): string => {
+  if (!dateString) {
+    return "Sem data";
+  }
+
+  const date = new Date(dateString);
+
+  if (isNaN(date.getTime())) {
+    return "Sem data";
+  }
+
+  return date.toLocaleDateString("pt-BR");
+};
+
+export const getEpisodeDisplayDate = (
+  episode: IEpisodeData,
+  tvShowAge: number | undefined,
+): string => {
+  if (!episode.releaseDate) {
+    return "Sem data";
+  }
+
+  const releaseYear = new Date(episode.releaseDate).getFullYear();
+
+  if (tvShowAge != null && isValidAge(tvShowAge)) {
+    if (!isValidReleaseYear(releaseYear, tvShowAge)) {
+      return "Ano inválido";
+    }
+  }
+
+  return formatReleaseDate(episode.releaseDate);
+};
+
+export const getEpisodeSeasonLabel = (
+  episode: IEpisodeData,
+  seasons: ISeasonData[],
+  tvShows: ITvShowData[],
+): string => {
+  const season = findAssetByKey(seasons, episode.season["@key"]);
+
+  if (!season) {
+    return "Desconhecido";
+  }
+
+  const tvShow = findAssetByKey(tvShows, season.tvShow["@key"]);
+
+  return formatSeasonLabel(
+    tvShow?.title ?? season.tvShow["@key"],
+    season.number,
+  );
+};
+
+export const getTvShowTitleFromEpisode = (
+  episode: IEpisodeData,
+  seasons: ISeasonData[],
+  tvShows: ITvShowData[],
+): string => {
+  const season = findAssetByKey(seasons, episode.season["@key"]);
+
+  if (!season) {
+    return "Desconhecido";
+  }
+
+  const tvShow = findAssetByKey(tvShows, season.tvShow["@key"]);
+
+  return tvShow?.title ?? "Desconhecido";
+};
+
+export const sortByFavorite = <T>(
+  items: T[],
+  isFavoriteCallback: (item: T) => boolean,
+): T[] => {
+  return [...items].sort((currentItem, nextItem) => {
+    const currentIsFavorite = isFavoriteCallback(currentItem);
+    const nextIsFavorite = isFavoriteCallback(nextItem);
+
+    if (currentIsFavorite && !nextIsFavorite) {
+      return -1;
+    }
+
+    if (!currentIsFavorite && nextIsFavorite) {
+      return 1;
+    }
+
+    return 0;
+  });
+};

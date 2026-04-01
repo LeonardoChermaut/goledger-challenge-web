@@ -1,22 +1,24 @@
+import { ITvShowData } from "@/shared/interfaces/interface";
 import { FunctionComponent, useState } from "react";
-import { ITvShowData } from "../../../shared/interfaces/interface";
 
 type TvShowFormProps = {
+  isSubmitting: boolean;
   initialData: ITvShowData | null;
+
   onSubmit: (data: {
     title: string;
     description: string;
     recommendedAge: number;
   }) => void;
+
   onCancel: () => void;
-  isSubmitting: boolean;
 };
 
 export const TvShowForm: FunctionComponent<TvShowFormProps> = ({
   initialData,
+  isSubmitting,
   onSubmit,
   onCancel,
-  isSubmitting,
 }) => {
   const [formState, setFormState] = useState({
     title: initialData?.title || "",

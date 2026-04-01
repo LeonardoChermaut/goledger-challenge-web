@@ -1,21 +1,22 @@
+import { ConfirmDialog } from "@/components/ConfirmDialog";
+import { Modal } from "@/components/Modal";
+import { PageShell } from "@/components/PageShell";
+import { Pagination } from "@/components/Pagination";
+import { QueryResult } from "@/components/QueryResult";
+import { SearchInput } from "@/components/SearchInput";
 import { useAssetSearch } from "@/hooks/use-asset-search";
-import {
-  useAssets,
-  useCreateAsset,
-  useDeleteAsset,
-  useUpdateAsset,
-} from "@/hooks/use-assets";
+import { useAssets, useCreateAsset, useDeleteAsset } from "@/hooks/use-assets";
+import { useCrudForm } from "@/hooks/use-crud-form";
 import { useDisclosure } from "@/hooks/use-disclosure";
 import { usePagination } from "@/hooks/use-pagination";
-import { ITvShowData, IWatchlistData } from "@/shared/interfaces/interface";
+import {
+  ITvShowData,
+  ITvShowFormData,
+  IWatchlistData,
+} from "@/shared/interfaces/interface";
+import { sortByFavorite } from "@/shared/utils/utils";
 import { Plus } from "lucide-react";
-import { useMemo, useState } from "react";
-import { ConfirmDialog } from "../../components/ConfirmDialog";
-import { Modal } from "../../components/Modal";
-import { PageShell } from "../../components/PageShell";
-import { Pagination } from "../../components/Pagination";
-import { QueryResult } from "../../components/QueryResult";
-import { SearchInput } from "../../components/SearchInput";
+import { useState } from "react";
 import { TvShowCard } from "./components/TvShowCard";
 import { TvShowForm } from "./components/TvShowForm";
 
@@ -23,12 +24,8 @@ export const TvShowsPage = () => {
   const { data: tvShows, isLoading, error } = useAssets<ITvShowData>("tvShows");
   const { data: watchlists } = useAssets<IWatchlistData>("watchlist");
 
-  const createMutation = useCreateAsset<ITvShowData>("tvShows");
-  const updateMutation = useUpdateAsset("tvShows");
-  const deleteMutation = useDeleteAsset("tvShows");
-
-  const createWatchlist = useCreateAsset<IWatchlistData>("watchlist");
   const deleteWatchlist = useDeleteAsset("watchlist");
+  const createWatchlist = useCreateAsset("watchlist");
 
   const formDisclosure = useDisclosure();
   const deleteDisclosure = useDisclosure();
@@ -36,30 +33,25 @@ export const TvShowsPage = () => {
   const [editItem, setEditItem] = useState<ITvShowData | null>(null);
   const [deleteItem, setDeleteItem] = useState<ITvShowData | null>(null);
 
+  const {
+    submit,
+    isSubmitting,
+    delete: deleteMutation,
+  } = useCrudForm<ITvShowFormData>({
+    assetType: "tvShows",
+    keyFields: ["title"],
+  });
+
   const { searchTerm, filteredData, handleSearchChange } = useAssetSearch({
     data: tvShows,
     searchKey: "title",
     onFilterChange: () => resetPagination(),
   });
 
-  const isFavorite = (showTitle: string) =>
-    watchlists?.some((w) => w.title === showTitle) || false;
+  const isTvShowFavorite = (show: ITvShowData): boolean =>
+    watchlists?.some((watchlist) => watchlist.title === show.title) || false;
 
-  const sortedData = useMemo(() => {
-    return [...filteredData].sort((a, b) => {
-      const aFav = isFavorite(a.title);
-      const bFav = isFavorite(b.title);
-      if (aFav && !bFav) {
-        return -1;
-      }
-
-      if (!aFav && bFav) {
-        return 1;
-      }
-
-      return 0;
-    });
-  }, [filteredData, watchlists]);
+  const sortedData = sortByFavorite(filteredData, isTvShowFavorite);
 
   const {
     currentPage,
@@ -67,9 +59,7 @@ export const TvShowsPage = () => {
     paginatedData,
     onPageChange,
     resetPagination,
-  } = usePagination({
-    data: sortedData,
-  });
+  } = usePagination({ data: sortedData });
 
   const openCreate = () => {
     setEditItem(null);
@@ -86,45 +76,17 @@ export const TvShowsPage = () => {
     deleteDisclosure.open();
   };
 
-  const handleFormSubmit = async (formData: {
-    title: string;
-    description: string;
-    recommendedAge: number;
-  }) => {
-    const isNew = !editItem;
-    const hasKeyChanged = editItem && formData.title !== editItem.title;
-
-    if (isNew || hasKeyChanged) {
-      if (hasKeyChanged) {
-        await deleteMutation.mutateAsync({
-          "@assetType": "tvShows",
-          "@key": editItem["@key"],
-        });
-      }
-      await createMutation.mutateAsync({
-        "@assetType": "tvShows",
-        ...formData,
-      });
-    } else {
-      await updateMutation.mutateAsync({
-        "@assetType": "tvShows",
-        "@key": editItem["@key"],
-        description: formData.description,
-        recommendedAge: formData.recommendedAge,
-      });
-    }
-
+  const handleFormSubmit = async (formData: ITvShowFormData) => {
+    await submit(editItem, formData);
     formDisclosure.close();
   };
 
   const handleDeleteConfirm = async () => {
-    if (!deleteItem) return;
+    if (!deleteItem) {
+      return;
+    }
 
-    await deleteMutation.mutateAsync({
-      "@assetType": "tvShows",
-      "@key": deleteItem["@key"],
-    });
-
+    await deleteMutation.mutateAsync(deleteItem["@key"]);
     deleteDisclosure.close();
     setDeleteItem(null);
   };
@@ -146,8 +108,6 @@ export const TvShowsPage = () => {
       });
     }
   };
-
-  const isSubmitting = createMutation.isPending || updateMutation.isPending;
 
   return (
     <PageShell
@@ -182,10 +142,10 @@ export const TvShowsPage = () => {
                 <TvShowCard
                   key={show["@key"]}
                   show={show}
-                  isFavorite={isFavorite(show.title)}
-                  onToggleFavorite={handleToggleFavorite}
                   onEdit={openEdit}
                   onDelete={openDelete}
+                  isFavorite={isTvShowFavorite(show)}
+                  onToggleFavorite={handleToggleFavorite}
                 />
               ))}
             </div>
@@ -208,18 +168,18 @@ export const TvShowsPage = () => {
         <TvShowForm
           initialData={editItem}
           onSubmit={handleFormSubmit}
-          onCancel={formDisclosure.close}
           isSubmitting={isSubmitting}
+          onCancel={formDisclosure.close}
         />
       </Modal>
 
       <ConfirmDialog
         open={deleteDisclosure.isOpen}
-        onClose={deleteDisclosure.close}
         onConfirm={handleDeleteConfirm}
+        onClose={deleteDisclosure.close}
+        loading={deleteMutation.isPending}
         title="Remover Programa de TV"
         message={`Tem certeza que deseja remover "${deleteItem?.title}"? Esta ação não pode ser desfeita.`}
-        loading={deleteMutation.isPending}
       />
     </PageShell>
   );

@@ -1,6 +1,6 @@
+import { SearchableSelect } from "@/components/SearchableSelect";
+import { ITvShowData } from "@/shared/interfaces/interface";
 import { FunctionComponent, useMemo, useState } from "react";
-import { SearchableSelect } from "../../../components/SearchableSelect";
-import { ITvShowData } from "../../../shared/interfaces/interface";
 
 type WatchlistFormProps = {
   initialData?: {
