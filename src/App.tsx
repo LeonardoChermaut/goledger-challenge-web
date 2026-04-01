@@ -5,10 +5,12 @@ import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { AppHeader } from "./components/AppHeader";
 import { Footer } from "./components/Footer";
 import { EpisodesPage } from "./modules/episodes/EpisodesPage";
-import { NotFound } from "./modules/not-found/NotFoundPage";
+import { NotFoundPage } from "./modules/not-found/NotFoundPage";
+
 import { SeasonsPage } from "./modules/seasons/SeasonsPage";
 import { TvShowsPage } from "./modules/tv-shows/TvShowsPage";
 import { WatchlistsPage } from "./modules/watchlists/WatchlistsPage";
+import { routes } from "./shared/routes/routes";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -28,11 +30,14 @@ export const App = () => (
           <AppHeader />
           <main className="flex-grow">
             <Routes>
-              <Route path="/" element={<TvShowsPage />} />
-              <Route path="/seasons" element={<SeasonsPage />} />
-              <Route path="/episodes" element={<EpisodesPage />} />
-              <Route path="/watchlists" element={<WatchlistsPage />} />
-              <Route path="*" element={<NotFound />} />
+              <Route path={routes.route.home} element={<TvShowsPage />} />
+              <Route path={routes.route.seasons} element={<SeasonsPage />} />
+              <Route path={routes.route.episodes} element={<EpisodesPage />} />
+              <Route
+                path={routes.route.watchlists}
+                element={<WatchlistsPage />}
+              />
+              <Route path="*" element={<NotFoundPage />} />
             </Routes>
           </main>
           <Footer />

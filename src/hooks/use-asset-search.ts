@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 
-type UseAssetSearchProps<T> = {
+type AssetSearchProps<T> = {
   data: T[] | undefined;
   searchKey?: keyof T;
   onFilterChange?: (term: string) => void;
@@ -12,7 +12,7 @@ export const useAssetSearch = <T extends Record<string, any>>({
   searchKey = "title" as keyof T,
   customFilter,
   onFilterChange,
-}: UseAssetSearchProps<T>) => {
+}: AssetSearchProps<T>) => {
   const [searchTerm, setSearchTerm] = useState<string>("");
 
   const handleSearchChange = (value: string) => {

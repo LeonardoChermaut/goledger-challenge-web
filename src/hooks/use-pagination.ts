@@ -2,12 +2,12 @@ import { useMemo, useState } from "react";
 
 interface UsePaginationOptions<T> {
   data: T[] | undefined;
-  itemsPerPage: number;
+  itemsPerPage?: number;
 }
 
 export const usePagination = <T>({
   data,
-  itemsPerPage,
+  itemsPerPage = 9,
 }: UsePaginationOptions<T>) => {
   const [currentPage, setCurrentPage] = useState<number>(1);
 
@@ -25,9 +25,7 @@ export const usePagination = <T>({
     };
   }, [data, currentPage, itemsPerPage]);
 
-  const onPageChange = (page: number) => {
-    setCurrentPage(page);
-  };
+  const onPageChange = (page: number) => setCurrentPage(page);
 
   const resetPagination = () => setCurrentPage(1);
 

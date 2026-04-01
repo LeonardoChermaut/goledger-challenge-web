@@ -1,8 +1,8 @@
 import { useAssetSearch } from "@/hooks/use-asset-search";
 import {
+  useAssets,
   useCreateAsset,
   useDeleteAsset,
-  useSearchAssets,
   useUpdateAsset,
 } from "@/hooks/use-assets";
 import { useDisclosure } from "@/hooks/use-disclosure";
@@ -31,9 +31,9 @@ export const EpisodesPage = () => {
     data: episodes,
     isLoading,
     error,
-  } = useSearchAssets<IEpisodeData>("episodes");
-  const { data: seasons } = useSearchAssets<ISeasonData>("seasons");
-  const { data: tvShows } = useSearchAssets<ITvShowData>("tvShows");
+  } = useAssets<IEpisodeData>("episodes");
+  const { data: seasons } = useAssets<ISeasonData>("seasons");
+  const { data: tvShows } = useAssets<ITvShowData>("tvShows");
 
   const createMutation = useCreateAsset<IEpisodeData>("episodes");
   const updateMutation = useUpdateAsset("episodes");
@@ -51,7 +51,7 @@ export const EpisodesPage = () => {
     const tvShow = findAssetByKey(tvShows, season.tvShow["@key"]);
     return formatSeasonLabel(
       tvShow?.title ?? season.tvShow["@key"],
-      season.number
+      season.number,
     );
   };
 
@@ -246,7 +246,8 @@ export const EpisodesPage = () => {
                     ? editItem.releaseDate.slice(0, 10)
                     : "",
                   description: editItem.description,
-                  rating: editItem.rating != null ? String(editItem.rating) : "",
+                  rating:
+                    editItem.rating != null ? String(editItem.rating) : "",
                 }
               : undefined
           }

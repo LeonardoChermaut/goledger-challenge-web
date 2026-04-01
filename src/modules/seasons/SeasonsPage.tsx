@@ -1,8 +1,8 @@
 import { useAssetSearch } from "@/hooks/use-asset-search";
 import {
+  useAssets,
   useCreateAsset,
   useDeleteAsset,
-  useSearchAssets,
   useUpdateAsset,
 } from "@/hooks/use-assets";
 import { useDisclosure } from "@/hooks/use-disclosure";
@@ -20,15 +20,9 @@ import { getTvShowTitle } from "../../shared/utils/utils";
 import { SeasonCard } from "./components/SeasonCard";
 import { SeasonForm } from "./components/SeasonForm";
 
-const ITEMS_PER_PAGE = 9;
-
 export const SeasonsPage = () => {
-  const {
-    data: seasons,
-    isLoading,
-    error,
-  } = useSearchAssets<ISeasonData>("seasons");
-  const { data: tvShows } = useSearchAssets<ITvShowData>("tvShows");
+  const { data: seasons, isLoading, error } = useAssets<ISeasonData>("seasons");
+  const { data: tvShows } = useAssets<ITvShowData>("tvShows");
 
   const createMutation = useCreateAsset<ISeasonData>("seasons");
   const updateMutation = useUpdateAsset("seasons");
@@ -55,7 +49,6 @@ export const SeasonsPage = () => {
     resetPagination,
   } = usePagination({
     data: filteredData,
-    itemsPerPage: ITEMS_PER_PAGE,
   });
 
   const groupedSeasons = useMemo(() => {

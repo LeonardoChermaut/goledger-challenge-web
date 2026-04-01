@@ -1,8 +1,8 @@
 import { useAssetSearch } from "@/hooks/use-asset-search";
 import {
+  useAssets,
   useCreateAsset,
   useDeleteAsset,
-  useSearchAssets,
   useUpdateAsset,
 } from "@/hooks/use-assets";
 import { useDisclosure } from "@/hooks/use-disclosure";
@@ -19,15 +19,9 @@ import { SearchInput } from "../../components/SearchInput";
 import { TvShowCard } from "./components/TvShowCard";
 import { TvShowForm } from "./components/TvShowForm";
 
-const ITEMS_PER_PAGE = 9;
-
 export const TvShowsPage = () => {
-  const {
-    data: tvShows,
-    isLoading,
-    error,
-  } = useSearchAssets<ITvShowData>("tvShows");
-  const { data: watchlists } = useSearchAssets<IWatchlistData>("watchlist");
+  const { data: tvShows, isLoading, error } = useAssets<ITvShowData>("tvShows");
+  const { data: watchlists } = useAssets<IWatchlistData>("watchlist");
 
   const createMutation = useCreateAsset<ITvShowData>("tvShows");
   const updateMutation = useUpdateAsset("tvShows");
@@ -75,7 +69,6 @@ export const TvShowsPage = () => {
     resetPagination,
   } = usePagination({
     data: sortedData,
-    itemsPerPage: ITEMS_PER_PAGE,
   });
 
   const openCreate = () => {
