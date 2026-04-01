@@ -41,8 +41,9 @@ class ApiService extends BaseApiService {
     private readonly headers: HeadersInit = {
       "Content-Type": "application/json",
       Authorization:
-        "Basic " + btoa(`${import.meta.env.API_AUTHORIZATION || "goledger:5NxVCAjC"}`), // TODO: Corrigir pra usar o .env
-    }
+        "Basic " +
+        btoa(`${import.meta.env.API_AUTHORIZATION || "goledger:5NxVCAjC"}`), // TODO: Corrigir pra usar o .env
+    },
   ) {
     super();
   }
@@ -77,7 +78,7 @@ class ApiService extends BaseApiService {
 
   public async get<T>(
     endpoint: string,
-    params?: IPaginationParams
+    params?: IPaginationParams,
   ): Promise<T> {
     const queryString = this.buildQueryString(params);
 
@@ -111,7 +112,7 @@ class ApiService extends BaseApiService {
 
   public async delete<T, D = undefined>(
     endpoint: string,
-    data?: D
+    data?: D,
   ): Promise<T> {
     const response = await fetch(`${this.baseUrl}${endpoint}`, {
       method: "DELETE",

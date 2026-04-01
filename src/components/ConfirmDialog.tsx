@@ -9,7 +9,14 @@ type ConfirmDialogProps = {
 
 import { Modal } from "./Modal";
 
-export const ConfirmDialog = ({ open, onClose, onConfirm, title, message, loading }: ConfirmDialogProps) => (
+export const ConfirmDialog = ({
+  open,
+  onClose,
+  onConfirm,
+  title,
+  message,
+  loading,
+}: ConfirmDialogProps) => (
   <Modal open={open} onClose={onClose} title={title}>
     <p className="mb-6 text-muted-foreground">{message}</p>
     <div className="flex justify-end gap-3">

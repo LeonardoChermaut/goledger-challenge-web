@@ -29,7 +29,11 @@ export const WatchlistsPage = () => {
   } = useAssets<IWatchlistData>("watchlist");
   const { data: tvShows } = useAssets<ITvShowData>("tvShows");
 
-  const { submit, isSubmitting, delete: deleteMutation } = useCrudForm<IWatchlistPayload>({
+  const {
+    submit,
+    isSubmitting,
+    delete: deleteMutation,
+  } = useCrudForm<IWatchlistPayload>({
     assetType: "watchlist",
     keyFields: ["title"],
   });

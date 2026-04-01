@@ -85,7 +85,9 @@ export const EpisodesPage = () => {
       return false;
     }
 
-    return watchlists?.some((watchlist) => watchlist.title === tvShow.title) || false;
+    return (
+      watchlists?.some((watchlist) => watchlist.title === tvShow.title) || false
+    );
   };
 
   const sortedEpisodes = sortByFavorite(paginatedData, isEpisodeFavorite);

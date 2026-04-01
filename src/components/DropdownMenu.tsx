@@ -7,12 +7,12 @@ type DropdownOption = {
   icon: React.ReactNode;
   variant?: "default" | "destructive";
   onClick: () => void;
-}
+};
 
 type DropdownMenuProps = {
   options: DropdownOption[];
   className?: string;
-}
+};
 
 export const DropdownMenu = ({ options, className }: DropdownMenuProps) => {
   const [isOpen, setIsOpen] = useState<boolean>(false);
@@ -55,7 +55,8 @@ export const DropdownMenu = ({ options, className }: DropdownMenuProps) => {
               }}
               className={cn(
                 "flex w-full items-center gap-2 rounded-sm px-3 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus:outline-none",
-                option.variant === "destructive" && "text-destructive hover:bg-destructive/10 hover:text-destructive"
+                option.variant === "destructive" &&
+                  "text-destructive hover:bg-destructive/10 hover:text-destructive",
               )}
             >
               <span className="h-4 w-4 shrink-0">{option.icon}</span>
