@@ -17,7 +17,7 @@ export const WatchlistCard: FunctionComponent<WatchlistCardProps> = ({
   onDelete,
 }) => {
   return (
-    <div className="glass-card p-5 flex flex-col h-full gap-3 group relative hover:z-20">
+    <div className="glass-card p-5 flex flex-col h-full gap-3 group relative hover:shadow-xl hover:z-20 hover:border-primary/30 animate-fade-in cursor-default">
       <div className="flex items-start justify-between gap-4">
         <h3 className="font-heading text-lg font-semibold text-foreground leading-snug flex-1 truncate">
           {watchlist.title}

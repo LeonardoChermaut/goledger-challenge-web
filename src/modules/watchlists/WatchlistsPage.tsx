@@ -21,6 +21,9 @@ import { WatchlistCard } from "./components/WatchlistCard";
 import { WatchlistForm } from "./components/WatchlistForm";
 
 export const WatchlistsPage = () => {
+  const [editItem, setEditItem] = useState<IWatchlistData | null>(null);
+  const [deleteItem, setDeleteItem] = useState<IWatchlistData | null>(null);
+
   const {
     data: watchlists,
     isLoading,
@@ -36,15 +39,6 @@ export const WatchlistsPage = () => {
     assetType: "watchlist",
   });
 
-  const formDisclosure = useDisclosure();
-  const deleteDisclosure = useDisclosure();
-
-  const [editItem, setEditItem] = useState<IWatchlistData | null>(null);
-  const [deleteItem, setDeleteItem] = useState<IWatchlistData | null>(null);
-
-  const getTvShowTitle = (key: string): string =>
-    findAssetByKey(tvShows, key)?.title ?? key;
-
   const { searchTerm, filteredData, handleSearchChange } = useAssetSearch({
     data: watchlists,
     searchKey: "title",
@@ -58,6 +52,12 @@ export const WatchlistsPage = () => {
     onPageChange,
     resetPagination,
   } = usePagination({ data: filteredData });
+
+  const formDisclosure = useDisclosure();
+  const deleteDisclosure = useDisclosure();
+
+  const getTvShowTitle = (key: string): string =>
+    findAssetByKey(tvShows, key)?.title ?? key;
 
   const openCreate = () => {
     setEditItem(null);
@@ -89,7 +89,10 @@ export const WatchlistsPage = () => {
   };
 
   const handleDeleteConfirm = async () => {
-    if (!deleteItem) return;
+    if (!deleteItem) {
+      return;
+    }
+
     await deleteWatchlist.mutateAsync(deleteItem["@key"]);
     deleteDisclosure.close();
     setDeleteItem(null);

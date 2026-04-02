@@ -28,7 +28,7 @@ export const SeasonCard: FunctionComponent<SeasonCardProps> = ({
     tvShowAge != null && isValidAge(tvShowAge) ? tvShowAge : null;
 
   return (
-    <div className="glass-card p-5 flex flex-col h-full gap-3 group relative hover:z-20">
+    <div className="glass-card p-5 flex flex-col h-full gap-3 group relative hover:shadow-xl hover:z-20 hover:border-primary/30 animate-fade-in cursor-default">
       <div className="flex items-start justify-between">
         <div className="flex-1">
           <p className="text-xs text-muted-foreground">{tvShowTitle}</p>

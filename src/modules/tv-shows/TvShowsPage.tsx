@@ -20,6 +20,9 @@ import { TvShowCard } from "./components/TvShowCard";
 import { TvShowForm } from "./components/TvShowForm";
 
 export const TvShowsPage = () => {
+  const [editItem, setEditItem] = useState<ITvShowData | null>(null);
+  const [deleteItem, setDeleteItem] = useState<ITvShowData | null>(null);
+
   const { data: tvShows, isLoading, error } = useAssets<ITvShowData>("tvShows");
   const { data: watchlists } = useAssets<IWatchlistData>("watchlist");
 
@@ -32,17 +35,14 @@ export const TvShowsPage = () => {
   const { createAsset: createWatchlist, deleteAsset: deleteWatchlist } =
     useAssetManager<IWatchlistData>({ assetType: "watchlist" });
 
-  const formDisclosure = useDisclosure();
-  const deleteDisclosure = useDisclosure();
-
-  const [editItem, setEditItem] = useState<ITvShowData | null>(null);
-  const [deleteItem, setDeleteItem] = useState<ITvShowData | null>(null);
-
   const { searchTerm, filteredData, handleSearchChange } = useAssetSearch({
     data: tvShows,
     searchKey: "title",
     onFilterChange: () => resetPagination(),
   });
+
+  const formDisclosure = useDisclosure();
+  const deleteDisclosure = useDisclosure();
 
   const isTvShowFavorite = (show: ITvShowData): boolean =>
     watchlists?.some((watchlist) => watchlist.title === show.title) || false;

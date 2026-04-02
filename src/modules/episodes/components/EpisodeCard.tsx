@@ -39,7 +39,7 @@ export const EpisodeCard: FunctionComponent<EpisodeCardProps> = ({
       : null;
 
   return (
-    <div className="glass-card p-5 flex flex-col h-full gap-3 group relative transition-all duration-300 hover:shadow-xl hover:z-20">
+    <div className="glass-card p-5 flex flex-col h-full gap-3 group relative hover:shadow-xl hover:z-20 hover:border-primary/30 animate-fade-in cursor-default">
       <div className="flex items-start justify-between">
         <div className="flex-1">
           <div className="flex items-center gap-2 flex-wrap">

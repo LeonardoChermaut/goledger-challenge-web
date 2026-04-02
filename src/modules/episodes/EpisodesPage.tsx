@@ -30,11 +30,15 @@ import { EpisodeCard } from "./components/EpisodeCard";
 import { EpisodeForm } from "./components/EpisodeForm";
 
 export const EpisodesPage = () => {
+  const [editItem, setEditItem] = useState<IEpisodeData | null>(null);
+  const [deleteItem, setDeleteItem] = useState<IEpisodeData | null>(null);
+
   const {
     data: episodes,
     isLoading,
     error,
   } = useAssets<IEpisodeData>("episodes");
+
   const { data: seasons } = useAssets<ISeasonData>("seasons");
   const { data: tvShows } = useAssets<ITvShowData>("tvShows");
   const { data: watchlists } = useAssets<IWatchlistData>("watchlist");
@@ -47,12 +51,6 @@ export const EpisodesPage = () => {
 
   const { createAsset: createWatchlist, deleteAsset: deleteWatchlist } =
     useAssetManager<IWatchlistData>({ assetType: "watchlist" });
-
-  const formDisclosure = useDisclosure();
-  const deleteDisclosure = useDisclosure();
-
-  const [editItem, setEditItem] = useState<IEpisodeData | null>(null);
-  const [deleteItem, setDeleteItem] = useState<IEpisodeData | null>(null);
 
   const { searchTerm, filteredData, handleSearchChange } = useAssetSearch({
     data: episodes,
@@ -70,12 +68,18 @@ export const EpisodesPage = () => {
 
   const isEpisodeFavorite = (episode: IEpisodeData): boolean => {
     const season = findAssetByKey(seasons, episode.season["@key"]);
-    if (!season) return false;
+    if (!season) {
+      return false;
+    }
 
     const tvShow = findAssetByKey(tvShows, season.tvShow["@key"]);
-    if (!tvShow) return false;
+    if (!tvShow) {
+      return false;
+    }
 
-    return watchlists?.some((w) => w.title === tvShow.title) || false;
+    return (
+      watchlists?.some((watchlist) => watchlist.title === tvShow.title) || false
+    );
   };
 
   const sortedEpisodes = sortByFavorite(paginatedData, isEpisodeFavorite);
@@ -86,12 +90,19 @@ export const EpisodesPage = () => {
       getTvShowTitleFromEpisode(episode, seasons ?? [], tvShows ?? []),
   });
 
+  const formDisclosure = useDisclosure();
+  const deleteDisclosure = useDisclosure();
+
   const handleToggleFavorite = async (ep: IEpisodeData) => {
     const season = findAssetByKey(seasons, ep.season["@key"]);
-    if (!season) return;
+    if (!season) {
+      return;
+    }
 
     const tvShow = findAssetByKey(tvShows, season.tvShow["@key"]);
-    if (!tvShow) return;
+    if (!tvShow) {
+      return;
+    }
 
     const favoritesList = watchlists?.find((w) => w.title === tvShow.title);
 
@@ -138,7 +149,9 @@ export const EpisodesPage = () => {
   };
 
   const handleDeleteConfirm = async () => {
-    if (!deleteItem) return;
+    if (!deleteItem) {
+      return;
+    }
 
     await deleteEpisode.mutateAsync(deleteItem["@key"]);
     deleteDisclosure.close();

@@ -27,6 +27,9 @@ import { SeasonCard } from "./components/SeasonCard";
 import { SeasonForm } from "./components/SeasonForm";
 
 export const SeasonsPage = () => {
+  const [editItem, setEditItem] = useState<ISeasonData | null>(null);
+  const [deleteItem, setDeleteItem] = useState<ISeasonData | null>(null);
+
   const { data: seasons, isLoading, error } = useAssets<ISeasonData>("seasons");
   const { data: tvShows } = useAssets<ITvShowData>("tvShows");
   const { data: watchlists } = useAssets<IWatchlistData>("watchlist");
@@ -39,12 +42,6 @@ export const SeasonsPage = () => {
 
   const { createAsset: createWatchlist, deleteAsset: deleteWatchlist } =
     useAssetManager<IWatchlistData>({ assetType: "watchlist" });
-
-  const formDisclosure = useDisclosure();
-  const deleteDisclosure = useDisclosure();
-
-  const [editItem, setEditItem] = useState<ISeasonData | null>(null);
-  const [deleteItem, setDeleteItem] = useState<ISeasonData | null>(null);
 
   const { searchTerm, filteredData, handleSearchChange } = useAssetSearch({
     data: seasons,
@@ -61,6 +58,9 @@ export const SeasonsPage = () => {
     resetPagination,
   } = usePagination({ data: filteredData });
 
+  const formDisclosure = useDisclosure();
+  const deleteDisclosure = useDisclosure();
+
   const isSeasonFavorite = (season: ISeasonData): boolean => {
     const tvShow = tvShows?.find(
       (item) => item["@key"] === season.tvShow["@key"],
@@ -69,7 +69,9 @@ export const SeasonsPage = () => {
       return false;
     }
 
-    return watchlists?.some((w) => w.title === tvShow.title) || false;
+    return (
+      watchlists?.some((watchlist) => watchlist.title === tvShow.title) || false
+    );
   };
 
   const sortedSeasons = sortByFavorite(paginatedData, isSeasonFavorite);
@@ -81,7 +83,9 @@ export const SeasonsPage = () => {
 
   const handleToggleFavorite = async (season: ISeasonData) => {
     const tvShow = tvShows?.find((t) => t["@key"] === season.tvShow["@key"]);
-    if (!tvShow) return;
+    if (!tvShow) {
+      return;
+    }
 
     const favoritesList = watchlists?.find((w) => w.title === tvShow.title);
 
@@ -123,7 +127,9 @@ export const SeasonsPage = () => {
   };
 
   const handleDeleteConfirm = async () => {
-    if (!deleteItem) return;
+    if (!deleteItem) {
+      return;
+    }
 
     await deleteSeason.mutateAsync(deleteItem["@key"]);
     deleteDisclosure.close();
