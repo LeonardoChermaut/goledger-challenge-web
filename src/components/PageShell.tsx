@@ -1,18 +1,18 @@
-import { ReactNode } from "react";
+import { FunctionComponent, ReactNode } from "react";
 
 type PageShellProps = {
   title: string;
-  description?: string;
   action?: ReactNode;
   children: ReactNode;
+  description?: string;
 };
 
-export const PageShell = ({
+export const PageShell: FunctionComponent<PageShellProps> = ({
   title,
   description,
   action,
   children,
-}: PageShellProps) => (
+}) => (
   <div className="container py-8 animate-fade-in">
     <div className="mb-8 flex items-start justify-between gap-4">
       <div>

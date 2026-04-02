@@ -1,10 +1,16 @@
 import { cn } from "@/lib/lib";
 import { MoreVertical } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import {
+  FunctionComponent,
+  ReactNode,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 
 type DropdownOption = {
   label: string;
-  icon: React.ReactNode;
+  icon: ReactNode;
   variant?: "default" | "destructive";
   onClick: () => void;
 };
@@ -14,7 +20,10 @@ type DropdownMenuProps = {
   className?: string;
 };
 
-export const DropdownMenu = ({ options, className }: DropdownMenuProps) => {
+export const DropdownMenu: FunctionComponent<DropdownMenuProps> = ({
+  options,
+  className,
+}) => {
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const menuRef = useRef<HTMLDivElement>(null);
 

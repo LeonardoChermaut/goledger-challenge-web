@@ -1,22 +1,23 @@
+import { FunctionComponent } from "react";
+import { Modal } from "./Modal";
+
 type ConfirmDialogProps = {
   open: boolean;
-  onClose: () => void;
-  onConfirm: () => void;
   title: string;
   message: string;
   loading?: boolean;
+  onClose: () => void;
+  onConfirm: () => void;
 };
 
-import { Modal } from "./Modal";
-
-export const ConfirmDialog = ({
+export const ConfirmDialog: FunctionComponent<ConfirmDialogProps> = ({
   open,
-  onClose,
-  onConfirm,
   title,
   message,
   loading,
-}: ConfirmDialogProps) => (
+  onClose,
+  onConfirm,
+}) => (
   <Modal open={open} onClose={onClose} title={title}>
     <p className="mb-6 text-muted-foreground">{message}</p>
     <div className="flex justify-end gap-3">

@@ -3,11 +3,11 @@ import { ReactNode } from "react";
 
 type SearchableSelectProps<T> = {
   label: string;
-  items: T[] | undefined;
   searchTerm: string;
-  emptyMessage?: string;
-  placeholder?: string;
   maxHeight?: string;
+  placeholder?: string;
+  emptyMessage?: string;
+  items: T[] | undefined;
   renderItem: (item: T) => ReactNode;
   onSearchChange: (value: string) => void;
 };

@@ -20,9 +20,11 @@ export const AppHeader = () => {
             GoShow<span className="text-primary">DB</span>
           </span>
         </Link>
+
         <nav className="flex items-center gap-1">
           {navItems.map((item) => {
             const isActive = location.pathname === item.path;
+
             return (
               <Link
                 key={item.path}

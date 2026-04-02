@@ -1,31 +1,38 @@
 import { cn } from "@/lib/lib";
 import { ChevronLeft, ChevronRight, MoreHorizontal } from "lucide-react";
+import { FunctionComponent } from "react";
 
 type PaginationProps = {
-  currentPage: number;
   totalPages: number;
   className?: string;
+  currentPage: number;
   onPageChange: (page: number) => void;
 };
 
-export const Pagination = ({
+export const Pagination: FunctionComponent<PaginationProps> = ({
   currentPage,
   totalPages,
-  onPageChange,
   className,
-}: PaginationProps) => {
-  if (totalPages <= 1) return null;
+  onPageChange,
+}) => {
+  if (totalPages <= 1) {
+    return null;
+  }
 
   const getPageNumbers = () => {
     const pages: (number | "ellipsis")[] = [];
     const showMax = 5;
 
     if (totalPages <= showMax + 2) {
-      for (let i = 1; i <= totalPages; i++) pages.push(i);
+      for (let i = 1; i <= totalPages; i++) {
+        pages.push(i);
+      }
     } else {
       pages.push(1);
 
-      if (currentPage > 3) pages.push("ellipsis");
+      if (currentPage > 3) {
+        pages.push("ellipsis");
+      }
 
       const start = Math.max(2, currentPage - 1);
       const end = Math.min(totalPages - 1, currentPage + 1);
@@ -34,9 +41,13 @@ export const Pagination = ({
         if (!pages.includes(i)) pages.push(i);
       }
 
-      if (currentPage < totalPages - 2) pages.push("ellipsis");
+      if (currentPage < totalPages - 2) {
+        pages.push("ellipsis");
+      }
 
-      if (!pages.includes(totalPages)) pages.push(totalPages);
+      if (!pages.includes(totalPages)) {
+        pages.push(totalPages);
+      }
     }
 
     return pages;

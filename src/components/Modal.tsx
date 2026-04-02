@@ -1,15 +1,22 @@
-import { ReactNode } from "react";
 import { X } from "lucide-react";
+import { FunctionComponent, ReactNode } from "react";
 
 type ModalProps = {
   open: boolean;
-  onClose: () => void;
   title: string;
   children: ReactNode;
+  onClose: () => void;
 };
 
-export const Modal = ({ open, onClose, title, children }: ModalProps) => {
-  if (!open) return null;
+export const Modal: FunctionComponent<ModalProps> = ({
+  open,
+  title,
+  children,
+  onClose,
+}) => {
+  if (!open) {
+    return null;
+  }
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
