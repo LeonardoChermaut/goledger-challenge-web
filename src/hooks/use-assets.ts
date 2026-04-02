@@ -27,7 +27,7 @@ export const useAssets = <T>(assetType: string, enabled = true) =>
     enabled,
   });
 
-export const useCreateAsset = <T>(assetType: string) => {
+const useCreateAsset = <T>(assetType: string) => {
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -43,13 +43,13 @@ export const useCreateAsset = <T>(assetType: string) => {
   });
 };
 
-export const useUpdateAsset = <T>(assetType: string) => {
+const useUpdateAsset = <T>(assetType: string) => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (update: Record<string, any>) =>
-      api.put<T, any>(routes.api.methods.updateAsset, {
-        update: { "@assetType": assetType, ...update },
+    mutationFn: (data: T & { "@key": string }) =>
+      api.put(routes.api.methods.updateAsset, {
+        update: { "@assetType": assetType, ...data },
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["assets", assetType] });
@@ -59,12 +59,14 @@ export const useUpdateAsset = <T>(assetType: string) => {
   });
 };
 
-export const useDeleteAsset = (assetType: string) => {
+const useDeleteAsset = (assetType: string) => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (key: Record<string, any>) =>
-      api.delete(routes.api.methods.deleteAsset, { key }),
+    mutationFn: (key: string) =>
+      api.delete(routes.api.methods.deleteAsset, {
+        key: { "@assetType": assetType, "@key": key },
+      }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["assets", assetType] });
       toast.success("Removido com sucesso!");
@@ -74,4 +76,44 @@ export const useDeleteAsset = (assetType: string) => {
         "Não foi possível remover. Verifique se não há nenhum item vinculado a este.",
       ),
   });
+};
+
+interface IAssetManagerOptions<T> {
+  assetType: string;
+}
+
+interface IAssetManagerReturn<T> {
+  isSubmitting: boolean;
+  createAsset: ReturnType<typeof useCreateAsset<T>>;
+  updateAsset: ReturnType<typeof useUpdateAsset<T>>;
+  deleteAsset: ReturnType<typeof useDeleteAsset>;
+  submit: (originalItem: T | null, formData: T) => Promise<unknown>;
+}
+
+export const useAssetManager = <T extends object>({
+  assetType,
+}: IAssetManagerOptions<T>): IAssetManagerReturn<T> => {
+  const createAsset = useCreateAsset<T>(assetType);
+  const updateAsset = useUpdateAsset<T>(assetType);
+  const deleteAsset = useDeleteAsset(assetType);
+
+  const submit = async (originalItem: T | null, formData: T) => {
+    if (!originalItem) {
+      return createAsset.mutateAsync(formData);
+    }
+
+    return updateAsset.mutateAsync({
+      "@key": (originalItem as T & { "@key": string })["@key"],
+      ...formData,
+    } as T & { "@key": string });
+  };
+
+  return {
+    submit,
+    createAsset,
+    updateAsset,
+    deleteAsset,
+    isSubmitting:
+      createAsset.isPending || updateAsset.isPending || deleteAsset.isPending,
+  };
 };

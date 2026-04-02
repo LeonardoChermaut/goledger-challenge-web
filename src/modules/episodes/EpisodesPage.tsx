@@ -5,8 +5,7 @@ import { Pagination } from "@/components/Pagination";
 import { QueryResult } from "@/components/QueryResult";
 import { SearchInput } from "@/components/SearchInput";
 import { useAssetSearch } from "@/hooks/use-asset-search";
-import { useAssets, useCreateAsset, useDeleteAsset } from "@/hooks/use-assets";
-import { useCrudForm } from "@/hooks/use-crud-form";
+import { useAssetManager, useAssets } from "@/hooks/use-assets";
 import { useDisclosure } from "@/hooks/use-disclosure";
 import { useGroupedAssets } from "@/hooks/use-grouped-assets";
 import { usePagination } from "@/hooks/use-pagination";
@@ -40,22 +39,20 @@ export const EpisodesPage = () => {
   const { data: tvShows } = useAssets<ITvShowData>("tvShows");
   const { data: watchlists } = useAssets<IWatchlistData>("watchlist");
 
-  const deleteWatchlist = useDeleteAsset("watchlist");
-  const createWatchlist = useCreateAsset("watchlist");
+  const {
+    submit,
+    isSubmitting,
+    deleteAsset: deleteEpisode,
+  } = useAssetManager<IEpisodePayload>({ assetType: "episodes" });
+
+  const { createAsset: createWatchlist, deleteAsset: deleteWatchlist } =
+    useAssetManager<IWatchlistData>({ assetType: "watchlist" });
 
   const formDisclosure = useDisclosure();
   const deleteDisclosure = useDisclosure();
 
   const [editItem, setEditItem] = useState<IEpisodeData | null>(null);
   const [deleteItem, setDeleteItem] = useState<IEpisodeData | null>(null);
-
-  const {
-    submit,
-    isSubmitting,
-    delete: deleteMutation,
-  } = useCrudForm<IEpisodePayload>({
-    assetType: "episodes",
-  });
 
   const { searchTerm, filteredData, handleSearchChange } = useAssetSearch({
     data: episodes,
@@ -73,20 +70,12 @@ export const EpisodesPage = () => {
 
   const isEpisodeFavorite = (episode: IEpisodeData): boolean => {
     const season = findAssetByKey(seasons, episode.season["@key"]);
-
-    if (!season) {
-      return false;
-    }
+    if (!season) return false;
 
     const tvShow = findAssetByKey(tvShows, season.tvShow["@key"]);
+    if (!tvShow) return false;
 
-    if (!tvShow) {
-      return false;
-    }
-
-    return (
-      watchlists?.some((watchlist) => watchlist.title === tvShow.title) || false
-    );
+    return watchlists?.some((w) => w.title === tvShow.title) || false;
   };
 
   const sortedEpisodes = sortByFavorite(paginatedData, isEpisodeFavorite);
@@ -99,25 +88,17 @@ export const EpisodesPage = () => {
 
   const handleToggleFavorite = async (ep: IEpisodeData) => {
     const season = findAssetByKey(seasons, ep.season["@key"]);
-    if (!season) {
-      return;
-    }
+    if (!season) return;
 
     const tvShow = findAssetByKey(tvShows, season.tvShow["@key"]);
-    if (!tvShow) {
-      return;
-    }
+    if (!tvShow) return;
 
     const favoritesList = watchlists?.find((w) => w.title === tvShow.title);
 
     if (favoritesList) {
-      await deleteWatchlist.mutateAsync({
-        "@assetType": "watchlist",
-        "@key": favoritesList["@key"],
-      });
+      await deleteWatchlist.mutateAsync(favoritesList["@key"]);
     } else {
       await createWatchlist.mutateAsync({
-        "@assetType": "watchlist",
         title: tvShow.title,
         description: tvShow.description,
         tvShows: [{ "@assetType": "tvShows", "@key": tvShow["@key"] }],
@@ -157,11 +138,9 @@ export const EpisodesPage = () => {
   };
 
   const handleDeleteConfirm = async () => {
-    if (!deleteItem) {
-      return;
-    }
+    if (!deleteItem) return;
 
-    await deleteMutation.mutateAsync(deleteItem["@key"]);
+    await deleteEpisode.mutateAsync(deleteItem["@key"]);
     deleteDisclosure.close();
     setDeleteItem(null);
   };
@@ -274,7 +253,7 @@ export const EpisodesPage = () => {
         onConfirm={handleDeleteConfirm}
         title="Remover Episódio"
         message={`Deseja remover o Episódio ${deleteItem?.episodeNumber} de "${deleteItem?.title}"? Esta ação não pode ser desfeita.`}
-        loading={deleteMutation.isPending}
+        loading={deleteEpisode.isPending}
       />
     </PageShell>
   );

@@ -5,8 +5,7 @@ import { Pagination } from "@/components/Pagination";
 import { QueryResult } from "@/components/QueryResult";
 import { SearchInput } from "@/components/SearchInput";
 import { useAssetSearch } from "@/hooks/use-asset-search";
-import { useAssets, useCreateAsset, useDeleteAsset } from "@/hooks/use-assets";
-import { useCrudForm } from "@/hooks/use-crud-form";
+import { useAssetManager, useAssets } from "@/hooks/use-assets";
 import { useDisclosure } from "@/hooks/use-disclosure";
 import { usePagination } from "@/hooks/use-pagination";
 import {
@@ -24,22 +23,20 @@ export const TvShowsPage = () => {
   const { data: tvShows, isLoading, error } = useAssets<ITvShowData>("tvShows");
   const { data: watchlists } = useAssets<IWatchlistData>("watchlist");
 
-  const deleteWatchlist = useDeleteAsset("watchlist");
-  const createWatchlist = useCreateAsset("watchlist");
+  const {
+    submit,
+    isSubmitting,
+    deleteAsset: deleteTvShow,
+  } = useAssetManager<ITvShowFormData>({ assetType: "tvShows" });
+
+  const { createAsset: createWatchlist, deleteAsset: deleteWatchlist } =
+    useAssetManager<IWatchlistData>({ assetType: "watchlist" });
 
   const formDisclosure = useDisclosure();
   const deleteDisclosure = useDisclosure();
 
   const [editItem, setEditItem] = useState<ITvShowData | null>(null);
   const [deleteItem, setDeleteItem] = useState<ITvShowData | null>(null);
-
-  const {
-    submit,
-    isSubmitting,
-    delete: deleteMutation,
-  } = useCrudForm<ITvShowFormData>({
-    assetType: "tvShows",
-  });
 
   const { searchTerm, filteredData, handleSearchChange } = useAssetSearch({
     data: tvShows,
@@ -85,7 +82,7 @@ export const TvShowsPage = () => {
       return;
     }
 
-    await deleteMutation.mutateAsync(deleteItem["@key"]);
+    await deleteTvShow.mutateAsync(deleteItem["@key"]);
     deleteDisclosure.close();
     setDeleteItem(null);
   };
@@ -94,13 +91,9 @@ export const TvShowsPage = () => {
     const favoritesList = watchlists?.find((w) => w.title === show.title);
 
     if (favoritesList) {
-      await deleteWatchlist.mutateAsync({
-        "@assetType": "watchlist",
-        "@key": favoritesList["@key"],
-      });
+      await deleteWatchlist.mutateAsync(favoritesList["@key"]);
     } else {
       await createWatchlist.mutateAsync({
-        "@assetType": "watchlist",
         title: show.title,
         description: show.description,
         tvShows: [{ "@assetType": "tvShows", "@key": show["@key"] }],
@@ -177,7 +170,7 @@ export const TvShowsPage = () => {
         open={deleteDisclosure.isOpen}
         onConfirm={handleDeleteConfirm}
         onClose={deleteDisclosure.close}
-        loading={deleteMutation.isPending}
+        loading={deleteTvShow.isPending}
         title="Remover Programa de TV"
         message={`Tem certeza que deseja remover "${deleteItem?.title}"? Esta ação não pode ser desfeita.`}
       />

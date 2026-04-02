@@ -5,8 +5,7 @@ import { Pagination } from "@/components/Pagination";
 import { QueryResult } from "@/components/QueryResult";
 import { SearchInput } from "@/components/SearchInput";
 import { useAssetSearch } from "@/hooks/use-asset-search";
-import { useAssets } from "@/hooks/use-assets";
-import { useCrudForm } from "@/hooks/use-crud-form";
+import { useAssetManager, useAssets } from "@/hooks/use-assets";
 import { useDisclosure } from "@/hooks/use-disclosure";
 import { usePagination } from "@/hooks/use-pagination";
 import {
@@ -32,8 +31,8 @@ export const WatchlistsPage = () => {
   const {
     submit,
     isSubmitting,
-    delete: deleteMutation,
-  } = useCrudForm<IWatchlistPayload>({
+    deleteAsset: deleteWatchlist,
+  } = useAssetManager<IWatchlistPayload>({
     assetType: "watchlist",
   });
 
@@ -91,7 +90,7 @@ export const WatchlistsPage = () => {
 
   const handleDeleteConfirm = async () => {
     if (!deleteItem) return;
-    await deleteMutation.mutateAsync(deleteItem["@key"]);
+    await deleteWatchlist.mutateAsync(deleteItem["@key"]);
     deleteDisclosure.close();
     setDeleteItem(null);
   };
@@ -172,7 +171,7 @@ export const WatchlistsPage = () => {
         open={deleteDisclosure.isOpen}
         onConfirm={handleDeleteConfirm}
         onClose={deleteDisclosure.close}
-        loading={deleteMutation.isPending}
+        loading={deleteWatchlist.isPending}
         title="Remover Lista de Favoritos"
         message={`Deseja remover "${deleteItem?.title}"? Esta ação não pode ser desfeita.`}
       />
