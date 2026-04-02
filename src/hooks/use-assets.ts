@@ -75,26 +75,3 @@ export const useDeleteAsset = (assetType: string) => {
       ),
   });
 };
-
-export const useEditAsset = (assetType: string) => {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async (data: {
-      oldKey: string;
-      newData: Record<string, any>;
-    }) => {
-      await api.delete(routes.api.methods.deleteAsset, {
-        key: { "@assetType": assetType, "@key": data.oldKey },
-      });
-      await api.post(routes.api.methods.createAsset, {
-        asset: [{ "@assetType": assetType, ...data.newData }],
-      });
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["assets", assetType] });
-      toast.success("Atualizado com sucesso!");
-    },
-    onError: () => toast.error("Erro ao atualizar."),
-  });
-};
