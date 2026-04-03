@@ -49,12 +49,13 @@ export const SeasonsPage = () => {
 
   const resetPaginationRef = useRef<() => void>(() => {});
 
-  const { searchTerm, filteredData, handleSearchChange } = useAssetSearch({
-    data: seasons,
-    customFilter: (item, term) =>
-      getTvShowTitle(item, tvShows).toLowerCase().includes(term),
-    onFilterChange: () => resetPaginationRef.current(),
-  });
+  const { searchTerm, filteredData, handleSearchChange } =
+    useAssetSearch<ISeasonData>({
+      data: seasons,
+      customFilter: (item, term) =>
+        getTvShowTitle(item, tvShows).toLowerCase().includes(term),
+      onFilterChange: () => resetPaginationRef.current(),
+    });
 
   const sortedSeasons = sortByFavorite(filteredData, (season) => {
     const tvShow = findAssetByKey(tvShows, season.tvShow["@key"]);

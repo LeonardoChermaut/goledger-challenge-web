@@ -38,11 +38,12 @@ export const TvShowsPage = () => {
 
   const resetPaginationRef = useRef<() => void>(() => {});
 
-  const { searchTerm, filteredData, handleSearchChange } = useAssetSearch({
-    data: tvShows,
-    searchKey: "title",
-    onFilterChange: () => resetPaginationRef.current(),
-  });
+  const { searchTerm, filteredData, handleSearchChange } =
+    useAssetSearch<ITvShowData>({
+      data: tvShows,
+      searchKey: "title",
+      onFilterChange: () => resetPaginationRef.current(),
+    });
 
   const sortedData = sortByFavorite(filteredData, (show) =>
     isFavorite(show.title),

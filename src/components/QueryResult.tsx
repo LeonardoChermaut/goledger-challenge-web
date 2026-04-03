@@ -3,7 +3,7 @@ import { ErrorMessage } from "./ErrorMessage";
 import { LoadingSpinner } from "./LoadingSpinner";
 
 type QueryResultProps = {
-  error: any;
+  error: Error;
   empty: boolean;
   loading: boolean;
   children: ReactNode;

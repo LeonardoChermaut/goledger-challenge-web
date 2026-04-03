@@ -7,7 +7,7 @@ type AssetSearchProps<T> = {
   customFilter?: (item: T, term: string) => boolean;
 };
 
-export const useAssetSearch = <T extends Record<string, any>>({
+export const useAssetSearch = <T>({
   data,
   searchKey = "title" as keyof T,
   customFilter,
@@ -21,8 +21,13 @@ export const useAssetSearch = <T extends Record<string, any>>({
   };
 
   const filteredData = useMemo(() => {
-    if (!data) return [];
-    if (!searchTerm) return data;
+    if (!data) {
+      return [];
+    }
+
+    if (!searchTerm) {
+      return data;
+    }
 
     const term = searchTerm.toLowerCase();
 
@@ -31,18 +36,19 @@ export const useAssetSearch = <T extends Record<string, any>>({
         return customFilter(item, term);
       }
 
-      const val = item[searchKey];
-      if (typeof val === "string") {
-        return val.toLowerCase().includes(term);
+      const itemValue = item[searchKey];
+      if (typeof itemValue === "string") {
+        return itemValue.toLowerCase().includes(term);
       }
+
       return false;
     });
   }, [data, searchTerm, searchKey, customFilter]);
 
   return {
     searchTerm,
-    setSearchTerm,
     filteredData,
+    setSearchTerm,
     handleSearchChange,
   };
 };

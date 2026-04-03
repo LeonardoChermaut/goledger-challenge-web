@@ -54,11 +54,12 @@ export const EpisodesPage = () => {
 
   const resetPaginationRef = useRef<() => void>(() => {});
 
-  const { searchTerm, filteredData, handleSearchChange } = useAssetSearch({
-    data: episodes,
-    searchKey: "title",
-    onFilterChange: () => resetPaginationRef.current(),
-  });
+  const { searchTerm, filteredData, handleSearchChange } =
+    useAssetSearch<IEpisodeData>({
+      data: episodes,
+      searchKey: "title",
+      onFilterChange: () => resetPaginationRef.current(),
+    });
 
   const isEpisodeFavorite = (episode: IEpisodeData): boolean => {
     const season = findAssetByKey(seasons, episode.season["@key"]);

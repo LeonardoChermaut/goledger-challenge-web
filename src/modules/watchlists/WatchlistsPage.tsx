@@ -36,11 +36,12 @@ export const WatchlistsPage = () => {
 
   const resetPaginationRef = useRef<() => void>(() => {});
 
-  const { searchTerm, filteredData, handleSearchChange } = useAssetSearch({
-    data: watchlists,
-    searchKey: "title",
-    onFilterChange: () => resetPaginationRef.current(),
-  });
+  const { searchTerm, filteredData, handleSearchChange } =
+    useAssetSearch<IWatchlistData>({
+      data: watchlists,
+      searchKey: "title",
+      onFilterChange: () => resetPaginationRef.current(),
+    });
 
   const {
     currentPage,

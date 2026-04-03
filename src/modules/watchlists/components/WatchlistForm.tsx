@@ -36,16 +36,18 @@ export const WatchlistForm: FunctionComponent<WatchlistFormProps> = ({
     searchModalTerm: "",
   });
 
-  const handleChange = (field: keyof typeof formState, value: any) =>
+  const handleChange = (field: keyof typeof formState, value: unknown) =>
     setFormState((prev) => ({ ...prev, [field]: value }));
 
   const filteredModalTvShows = useMemo(
     () =>
-      tvShows?.filter((s) =>
-        s.title.toLowerCase().includes(formState.searchModalTerm.toLowerCase()),
+      tvShows?.filter((tvShow) =>
+        tvShow.title
+          .toLowerCase()
+          .includes(formState.searchModalTerm.toLowerCase()),
       ) || [],
     [tvShows, formState.searchModalTerm],
-  );
+  ) as ITvShowData[];
 
   const toggleShow = (key: string) => {
     const current = formState.tvShows;
@@ -101,16 +103,16 @@ export const WatchlistForm: FunctionComponent<WatchlistFormProps> = ({
         label="Programas de TV"
         items={filteredModalTvShows}
         searchTerm={formState.searchModalTerm}
-        onSearchChange={(val) => handleChange("searchModalTerm", val)}
-        renderItem={(s) => (
+        onSearchChange={(value) => handleChange("searchModalTerm", value)}
+        renderItem={(tvShow) => (
           <label className="flex items-center gap-2 cursor-pointer text-sm text-foreground transition-colors hover:bg-primary/5 p-1 rounded">
             <input
               type="checkbox"
-              checked={formState.tvShows.includes(s["@key"])}
-              onChange={() => toggleShow(s["@key"])}
+              checked={formState.tvShows.includes(tvShow["@key"])}
+              onChange={() => toggleShow(tvShow["@key"])}
               className="rounded border-input accent-primary h-4 w-4"
             />
-            {s.title}
+            {tvShow.title}
           </label>
         )}
       />

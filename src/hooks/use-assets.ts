@@ -11,7 +11,7 @@ const useAssets = <T>(assetType: string, enabled = true) =>
   useQuery({
     queryKey: ["assets", assetType],
     queryFn: async () => {
-      const { result } = await api.post<ISearchResponse<T>, any>(
+      const { result } = await api.post<ISearchResponse<T>, unknown>(
         routes.api.methods.search,
         {
           query: {
@@ -31,8 +31,8 @@ const useCreateAsset = <T>(assetType: string) => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (asset: Record<string, any>) =>
-      api.post<T, any>(routes.api.methods.createAsset, {
+    mutationFn: (asset: Record<string, unknown>) =>
+      api.post<T, unknown>(routes.api.methods.createAsset, {
         asset: [{ "@assetType": assetType, ...asset }],
       }),
     onSuccess: () => {
@@ -78,7 +78,7 @@ const useDeleteAsset = (assetType: string) => {
   });
 };
 
-interface IAssetManagerOptions<T> {
+interface IAssetManagerOptions {
   assetType: string;
 }
 
@@ -93,7 +93,7 @@ interface IAssetManagerReturn<T> {
 
 export const useAssetManager = <T extends object>({
   assetType,
-}: IAssetManagerOptions<T>): IAssetManagerReturn<T> => {
+}: IAssetManagerOptions): IAssetManagerReturn<T> => {
   const assets = useAssets<T>(assetType);
   const createAsset = useCreateAsset<T>(assetType);
   const updateAsset = useUpdateAsset<T>(assetType);
@@ -101,7 +101,7 @@ export const useAssetManager = <T extends object>({
 
   const submit = async (originalItem: T | null, formData: T) => {
     if (!originalItem) {
-      return createAsset.mutateAsync(formData);
+      return createAsset.mutateAsync(formData as Record<string, unknown>);
     }
 
     return updateAsset.mutateAsync({

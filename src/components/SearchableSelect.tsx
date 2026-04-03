@@ -12,7 +12,7 @@ type SearchableSelectProps<T> = {
   onSearchChange: (value: string) => void;
 };
 
-export const SearchableSelect = <T extends Record<string, any>>({
+export const SearchableSelect = <T,>({
   label,
   items,
   searchTerm,
@@ -42,7 +42,9 @@ export const SearchableSelect = <T extends Record<string, any>>({
         className={`space-y-1 overflow-y-auto rounded-md border border-input bg-secondary p-2 ${maxHeight}`}
       >
         {items?.map((item, index) => (
-          <div key={item["@key"] ?? `item-${index}`}>{renderItem(item)}</div>
+          <div key={(item["@key"] as unknown as string) ?? `item-${index}`}>
+            {renderItem(item)}
+          </div>
         ))}
 
         {items?.length === 0 && (
