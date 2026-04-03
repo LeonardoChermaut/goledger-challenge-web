@@ -24,13 +24,12 @@ import {
   sortByFavorite,
 } from "@/shared/utils/utils";
 import { Film, Plus } from "lucide-react";
-import { useRef } from "react";
 import { SeasonCard } from "./components/SeasonCard";
 import { SeasonForm } from "./components/SeasonForm";
 
 export const SeasonsPage = () => {
   const {
-    assets: { data: seasons, isLoading, error },
+    assets: { data: seasons, isLoading, error, refetch },
   } = useAssetManager<ISeasonData>({ assetType: "seasons" });
   const {
     assets: { data: tvShows },
@@ -43,41 +42,39 @@ export const SeasonsPage = () => {
     submit,
     isSubmitting,
     deleteAsset: deleteSeason,
-  } = useAssetManager<ISeasonPayload>({ assetType: "seasons" });
+  } = useAssetManager<ISeasonData, ISeasonPayload>({ assetType: "seasons" });
 
-  const { toggleFavorite } = useFavorite({ watchlists });
+  const { isFavorite, isPending, toggleFavorite } = useFavorite({ watchlists });
 
-  const resetPaginationRef = useRef<() => void>(() => {});
+  const handler = useHandlers<ISeasonData, ISeasonPayload>();
+
+  const { resetPagination } = usePagination({ data: seasons });
 
   const { searchTerm, filteredData, handleSearchChange } =
     useAssetSearch<ISeasonData>({
       data: seasons,
       customFilter: (item, term) =>
-        getTvShowTitle(item, tvShows).toLowerCase().includes(term),
-      onFilterChange: () => resetPaginationRef.current(),
+        getTvShowTitle(item, tvShows ?? [])
+          .toLowerCase()
+          .includes(term),
+      onFilterChange: resetPagination,
     });
 
-  const sortedSeasons = sortByFavorite(filteredData, (season) => {
-    const tvShow = findAssetByKey(tvShows, season.tvShow["@key"]);
-    return watchlists?.some((w) => w.title === tvShow?.title) || false;
-  });
+  const sortedSeasons = sortByFavorite(filteredData ?? [], (season) =>
+    isFavorite(season.tvShow["@key"]),
+  );
 
   const {
-    currentPage,
-    totalPages,
-    paginatedData,
+    currentPage: sortedPage,
+    totalPages: sortedTotalPages,
+    paginatedData: sortedPaginatedData,
     onPageChange,
-    resetPagination,
   } = usePagination({ data: sortedSeasons });
 
-  resetPaginationRef.current = resetPagination;
-
   const { groups: groupedSeasons } = useGroupedAssets({
-    data: paginatedData,
-    groupBy: (season) => getTvShowTitle(season, tvShows),
+    data: sortedPaginatedData,
+    groupBy: (season) => getTvShowTitle(season, tvShows ?? []),
   });
-
-  const handler = useHandlers<ISeasonData>();
 
   const handleFormSubmit = async (formData: ISeasonFormData) => {
     const payload: ISeasonPayload = {
@@ -86,7 +83,7 @@ export const SeasonsPage = () => {
       year: formData.year,
     };
 
-    await submit(handler.editItem as ISeasonPayload | null, payload);
+    await submit(handler.editItem, payload);
     handler.formDisclosure.close();
   };
 
@@ -124,6 +121,7 @@ export const SeasonsPage = () => {
             error={error}
             empty={filteredData.length === 0}
             emptyMessage="Nenhuma temporada encontrada."
+            onRetry={() => refetch()}
           >
             <div className="space-y-12">
               {groupedSeasons.map(([showTitle, items], index) => (
@@ -133,37 +131,34 @@ export const SeasonsPage = () => {
                     {showTitle}
                   </h2>
                   <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                    {items.map((season) => (
-                      <SeasonCard
-                        key={season["@key"]}
-                        season={season}
-                        onEdit={handler.openEdit}
-                        onDelete={handler.openDelete}
-                        tvShowTitle={showTitle}
-                        isFavorite={
-                          watchlists?.some(
-                            (w) =>
-                              w.title ===
-                              findAssetByKey(tvShows, season.tvShow["@key"])
-                                ?.title,
-                          ) || false
-                        }
-                        onToggleFavorite={() => {
-                          const tvShow = findAssetByKey(
-                            tvShows,
-                            season.tvShow["@key"],
-                          );
-                          if (tvShow) {
-                            toggleFavorite(
-                              tvShow.title,
-                              tvShow.description,
-                              tvShow["@key"],
-                            );
-                          }
-                        }}
-                        tvShowAge={getTvShowAge(season, tvShows ?? [])}
-                      />
-                    ))}
+                    {items.map((season) => {
+                      const tvShow = findAssetByKey(
+                        tvShows,
+                        season.tvShow["@key"],
+                      );
+                      const tvShowKey = season.tvShow["@key"];
+                      return (
+                        <SeasonCard
+                          key={season["@key"]}
+                          season={season}
+                          onEdit={handler.openEdit}
+                          onDelete={handler.openDelete}
+                          tvShowTitle={showTitle}
+                          isFavorite={isFavorite(tvShowKey)}
+                          isFavoritePending={isPending(tvShowKey)}
+                          onToggleFavorite={() => {
+                            if (tvShow) {
+                              toggleFavorite(
+                                tvShow.title,
+                                tvShow.description,
+                                tvShowKey,
+                              );
+                            }
+                          }}
+                          tvShowAge={getTvShowAge(season, tvShows ?? [])}
+                        />
+                      );
+                    })}
                   </div>
                 </div>
               ))}
@@ -172,8 +167,8 @@ export const SeasonsPage = () => {
         </div>
 
         <Pagination
-          currentPage={currentPage}
-          totalPages={totalPages}
+          currentPage={sortedPage}
+          totalPages={sortedTotalPages}
           onPageChange={onPageChange}
           className="mt-8"
         />
@@ -208,10 +203,7 @@ export const SeasonsPage = () => {
         onConfirm={handleDeleteConfirm}
         onClose={handler.deleteDisclosure.close}
         loading={deleteSeason.isPending}
-        message={`Deseja remover a Temporada ${handler.deleteItem?.number} de ${getTvShowTitle(
-          handler.deleteItem!,
-          tvShows,
-        )}? Esta acao nao pode ser desfeita.`}
+        message={`Deseja remover a Temporada ${handler.deleteItem?.number} de ${handler.deleteItem ? getTvShowTitle(handler.deleteItem, tvShows ?? []) : ""}? Esta acao nao pode ser desfeita.`}
       />
     </PageShell>
   );

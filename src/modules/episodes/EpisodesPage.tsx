@@ -26,13 +26,12 @@ import {
   sortByFavorite,
 } from "@/shared/utils/utils";
 import { PlayCircle, Plus } from "lucide-react";
-import { useRef } from "react";
 import { EpisodeCard } from "./components/EpisodeCard";
 import { EpisodeForm } from "./components/EpisodeForm";
 
 export const EpisodesPage = () => {
   const {
-    assets: { data: episodes, isLoading, error },
+    assets: { data: episodes, isLoading, error, refetch },
   } = useAssetManager<IEpisodeData>({ assetType: "episodes" });
   const {
     assets: { data: seasons },
@@ -48,54 +47,51 @@ export const EpisodesPage = () => {
     submit,
     isSubmitting,
     deleteAsset: deleteEpisode,
-  } = useAssetManager<IEpisodePayload>({ assetType: "episodes" });
+  } = useAssetManager<IEpisodeData, IEpisodePayload>({ assetType: "episodes" });
 
-  const { toggleFavorite } = useFavorite({ watchlists });
+  const {
+    isFavorite: isWatchlistFavorite,
+    isPending,
+    toggleFavorite,
+  } = useFavorite({ watchlists });
 
-  const resetPaginationRef = useRef<() => void>(() => {});
+  const handler = useHandlers<IEpisodeData, IEpisodePayload>();
+
+  const { resetPagination } = usePagination({ data: episodes });
 
   const { searchTerm, filteredData, handleSearchChange } =
     useAssetSearch<IEpisodeData>({
       data: episodes,
       searchKey: "title",
-      onFilterChange: () => resetPaginationRef.current(),
+      onFilterChange: resetPagination,
     });
 
-  const isEpisodeFavorite = (episode: IEpisodeData): boolean => {
+  const getEpisodeTvShowKey = (episode: IEpisodeData): string | null => {
     const season = findAssetByKey(seasons, episode.season["@key"]);
-    if (!season) {
-      return false;
-    }
-
-    const tvShow = findAssetByKey(tvShows, season.tvShow["@key"]);
-    if (!tvShow) {
-      return false;
-    }
-
-    return (
-      watchlists?.some((watchlist) => watchlist.title === tvShow.title) || false
-    );
+    if (!season) return null;
+    return season.tvShow["@key"];
   };
 
-  const sortedEpisodes = sortByFavorite(filteredData, isEpisodeFavorite);
+  const isEpisodeFavorite = (episode: IEpisodeData): boolean => {
+    const tvShowKey = getEpisodeTvShowKey(episode);
+    if (!tvShowKey) return false;
+    return isWatchlistFavorite(tvShowKey);
+  };
+
+  const sortedEpisodes = sortByFavorite(filteredData ?? [], isEpisodeFavorite);
 
   const {
-    currentPage,
-    totalPages,
-    paginatedData,
+    currentPage: sortedPage,
+    totalPages: sortedTotalPages,
+    paginatedData: sortedPaginatedData,
     onPageChange,
-    resetPagination,
   } = usePagination({ data: sortedEpisodes });
 
-  resetPaginationRef.current = resetPagination;
-
   const { groups: groupedEpisodes } = useGroupedAssets({
-    data: paginatedData,
+    data: sortedPaginatedData,
     groupBy: (episode) =>
       getTvShowTitleFromEpisode(episode, seasons ?? [], tvShows ?? []),
   });
-
-  const handler = useHandlers<IEpisodeData>();
 
   const handleToggleFavorite = async (ep: IEpisodeData) => {
     const season = findAssetByKey(seasons, ep.season["@key"]);
@@ -123,7 +119,7 @@ export const EpisodesPage = () => {
       rating: formData.rating,
     };
 
-    await submit(handler.editItem as IEpisodePayload | null, payload);
+    await submit(handler.editItem, payload);
     handler.formDisclosure.close();
   };
 
@@ -164,6 +160,7 @@ export const EpisodesPage = () => {
             error={error}
             empty={filteredData.length === 0}
             emptyMessage="Nenhum episodio encontrado."
+            onRetry={() => refetch()}
           >
             <div className="space-y-12">
               {groupedEpisodes.map(([showTitle, items], index) => (
@@ -174,26 +171,32 @@ export const EpisodesPage = () => {
                   </h2>
 
                   <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                    {items.map((episode) => (
-                      <EpisodeCard
-                        key={episode["@key"]}
-                        episode={episode}
-                        onEdit={handler.openEdit}
-                        onDelete={handler.openDelete}
-                        isFavorite={isEpisodeFavorite(episode)}
-                        onToggleFavorite={handleToggleFavorite}
-                        seasonLabel={getEpisodeSeasonLabel(
-                          episode,
-                          seasons ?? [],
-                          tvShows ?? [],
-                        )}
-                        tvShowAge={getTvShowAgeFromEpisode(
-                          episode,
-                          seasons ?? [],
-                          tvShows ?? [],
-                        )}
-                      />
-                    ))}
+                    {items.map((episode) => {
+                      const tvShowKey = getEpisodeTvShowKey(episode);
+                      return (
+                        <EpisodeCard
+                          key={episode["@key"]}
+                          episode={episode}
+                          onEdit={handler.openEdit}
+                          onDelete={handler.openDelete}
+                          isFavorite={isEpisodeFavorite(episode)}
+                          isFavoritePending={
+                            tvShowKey ? isPending(tvShowKey) : false
+                          }
+                          onToggleFavorite={() => handleToggleFavorite(episode)}
+                          seasonLabel={getEpisodeSeasonLabel(
+                            episode,
+                            seasons ?? [],
+                            tvShows ?? [],
+                          )}
+                          tvShowAge={getTvShowAgeFromEpisode(
+                            episode,
+                            seasons ?? [],
+                            tvShows ?? [],
+                          )}
+                        />
+                      );
+                    })}
                   </div>
                 </div>
               ))}
@@ -202,8 +205,8 @@ export const EpisodesPage = () => {
         </div>
 
         <Pagination
-          currentPage={currentPage}
-          totalPages={totalPages}
+          currentPage={sortedPage}
+          totalPages={sortedTotalPages}
           onPageChange={onPageChange}
           className="mt-8"
         />

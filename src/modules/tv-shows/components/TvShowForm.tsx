@@ -1,17 +1,13 @@
-import { ITvShowData } from "@/shared/interfaces/interfaces";
-import { FunctionComponent, useState } from "react";
+import { ITvShowFormData } from "@/shared/interfaces/interfaces";
+import { isValidAge } from "@/shared/utils/utils";
+import { FunctionComponent } from "react";
+import { useForm } from "react-hook-form";
 
 type TvShowFormProps = {
   isEditing: boolean;
   isSubmitting: boolean;
-  initialData: ITvShowData | null;
-
-  onSubmit: (data: {
-    title: string;
-    description: string;
-    recommendedAge: number;
-  }) => void;
-
+  initialData: ITvShowFormData | null;
+  onSubmit: (data: ITvShowFormData) => void;
   onCancel: () => void;
 };
 
@@ -22,46 +18,40 @@ export const TvShowForm: FunctionComponent<TvShowFormProps> = ({
   onSubmit,
   onCancel,
 }) => {
-  const [formState, setFormState] = useState({
-    title: initialData?.title || "",
-    description: initialData?.description || "",
-    recommendedAge:
-      initialData?.recommendedAge != null
-        ? String(initialData.recommendedAge)
-        : "",
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isValid },
+  } = useForm<ITvShowFormData>({
+    defaultValues: {
+      title: initialData?.title ?? "",
+      description: initialData?.description ?? "",
+      recommendedAge: initialData?.recommendedAge ?? 0,
+    },
+    mode: "onChange",
   });
 
-  const handleChange = (field: keyof typeof formState, value: string) =>
-    setFormState((prev) => ({ ...prev, [field]: value }));
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    onSubmit({
-      title: formState.title,
-      description: formState.description,
-      recommendedAge: Number(formState.recommendedAge),
-    });
-  };
-
-  const isValid =
-    formState.title.trim() &&
-    formState.description.trim() &&
-    formState.recommendedAge.trim();
+  const handleFormSubmit = handleSubmit((data) => {
+    onSubmit(data);
+  });
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <form onSubmit={handleFormSubmit} className="space-y-4">
       <div>
         <label className="mb-1 block text-sm font-medium text-foreground">
           Título
         </label>
         <input
           type="text"
-          value={formState.title}
-          onChange={(e) => handleChange("title", e.target.value)}
-          required
+          {...register("title", { required: "Título é obrigatório" })}
           disabled={isEditing}
           className="w-full rounded-md border border-input bg-secondary px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-50 disabled:cursor-not-allowed"
         />
+        {errors.title && (
+          <p className="mt-1 text-xs text-destructive">
+            {errors.title.message}
+          </p>
+        )}
       </div>
 
       <div>
@@ -69,12 +59,15 @@ export const TvShowForm: FunctionComponent<TvShowFormProps> = ({
           Descrição
         </label>
         <textarea
-          value={formState.description}
-          onChange={(e) => handleChange("description", e.target.value)}
+          {...register("description", { required: "Descrição é obrigatória" })}
           rows={3}
-          required
           className="w-full rounded-md border border-input bg-secondary px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
         />
+        {errors.description && (
+          <p className="mt-1 text-xs text-destructive">
+            {errors.description.message}
+          </p>
+        )}
       </div>
 
       <div>
@@ -83,11 +76,17 @@ export const TvShowForm: FunctionComponent<TvShowFormProps> = ({
         </label>
         <input
           type="number"
-          value={formState.recommendedAge}
-          onChange={(e) => handleChange("recommendedAge", e.target.value)}
-          required
+          {...register("recommendedAge", {
+            required: "Classificação é obrigatória",
+            validate: (value) => isValidAge(value) || "Deve ser entre 0 e 18",
+          })}
           className="w-full rounded-md border border-input bg-secondary px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
         />
+        {errors.recommendedAge && (
+          <p className="mt-1 text-xs text-destructive">
+            {errors.recommendedAge.message}
+          </p>
+        )}
       </div>
 
       <div className="flex justify-end gap-3 pt-2">

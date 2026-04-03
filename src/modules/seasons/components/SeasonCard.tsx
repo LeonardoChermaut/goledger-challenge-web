@@ -7,28 +7,29 @@ import {
   getGradient,
   isValidAge,
 } from "@/shared/utils/utils";
-import { Film, Heart } from "lucide-react";
-import { FunctionComponent } from "react";
+import { Film, Heart, Loader2 } from "lucide-react";
 
 type SeasonCardProps = {
   season: ISeasonData;
   tvShowTitle: string;
   tvShowAge: number | undefined;
   isFavorite: boolean;
+  isFavoritePending: boolean;
   onEdit: (season: ISeasonData) => void;
   onDelete: (season: ISeasonData) => void;
-  onToggleFavorite: (season: ISeasonData) => void;
+  onToggleFavorite: () => void;
 };
 
-export const SeasonCard: FunctionComponent<SeasonCardProps> = ({
+export const SeasonCard = ({
   season,
   tvShowTitle,
   tvShowAge,
   isFavorite,
+  isFavoritePending,
   onEdit,
   onDelete,
   onToggleFavorite,
-}) => {
+}: SeasonCardProps) => {
   const displayAge =
     tvShowAge != null && isValidAge(tvShowAge) ? tvShowAge : null;
   const gradient = getGradient(seasonGradients, tvShowTitle);
@@ -53,9 +54,11 @@ export const SeasonCard: FunctionComponent<SeasonCardProps> = ({
             </span>
           )}
           <button
-            onClick={() => onToggleFavorite(season)}
+            onClick={onToggleFavorite}
+            disabled={isFavoritePending}
             className={cn(
-              "rounded-full p-1  transition-colors",
+              "rounded-full p-1 transition-colors",
+              isFavoritePending && "pointer-events-none opacity-50",
               isFavorite
                 ? "text-red-500"
                 : "text-muted-foreground hover:text-red-500",
@@ -64,11 +67,15 @@ export const SeasonCard: FunctionComponent<SeasonCardProps> = ({
               isFavorite ? "Remover dos favoritos" : "Adicionar aos favoritos"
             }
           >
-            <Heart
-              className={cn(
-                `h-3.5 w-3.5 ${isFavorite && "fill-current"} ${!isFavorite && "hover:fill-red-500"}`,
-              )}
-            />
+            {isFavoritePending ? (
+              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+            ) : (
+              <Heart
+                className={cn(
+                  `h-3.5 w-3.5 ${isFavorite && "fill-current"} ${!isFavorite && "hover:fill-red-500"}`,
+                )}
+              />
+            )}
           </button>
           <CardActions
             onEdit={() => onEdit(season)}

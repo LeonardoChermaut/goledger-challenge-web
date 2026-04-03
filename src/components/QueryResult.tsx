@@ -1,13 +1,14 @@
-import { AlertTriangle, Inbox, Loader2 } from "lucide-react";
+import { AlertTriangle, Inbox, Loader2, RefreshCw } from "lucide-react";
 import { FunctionComponent, ReactNode } from "react";
 
 type QueryResultProps = {
-  error: Error;
+  error: Error | null;
   empty: boolean;
   loading: boolean;
   children: ReactNode;
   emptyMessage?: string;
   loadingClassName?: string;
+  onRetry?: () => void;
 };
 
 export const QueryResult: FunctionComponent<QueryResultProps> = ({
@@ -17,6 +18,7 @@ export const QueryResult: FunctionComponent<QueryResultProps> = ({
   emptyMessage = "Nenhum item encontrado.",
   children,
   loadingClassName,
+  onRetry,
 }) => {
   if (loading) {
     return (
@@ -42,8 +44,18 @@ export const QueryResult: FunctionComponent<QueryResultProps> = ({
           Ops! Algo deu errado
         </p>
         <p className="mt-1 text-center text-sm text-muted-foreground">
-          Erro ao carregar dados. Tente novamente mais tarde.
+          {error.message ||
+            "Erro ao carregar dados. Tente novamente mais tarde."}
         </p>
+        {onRetry && (
+          <button
+            onClick={onRetry}
+            className="mt-4 inline-flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+          >
+            <RefreshCw className="h-4 w-4" />
+            Tentar novamente
+          </button>
+        )}
       </div>
     );
   }

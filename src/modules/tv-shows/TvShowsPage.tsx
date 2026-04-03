@@ -16,13 +16,12 @@ import {
 } from "@/shared/interfaces/interfaces";
 import { sortByFavorite } from "@/shared/utils/utils";
 import { Plus, Tv } from "lucide-react";
-import { useRef } from "react";
 import { TvShowCard } from "./components/TvShowCard";
 import { TvShowForm } from "./components/TvShowForm";
 
 export const TvShowsPage = () => {
   const {
-    assets: { data: tvShows, isLoading, error },
+    assets: { data: tvShows, isLoading, error, refetch },
   } = useAssetManager<ITvShowData>({ assetType: "tvShows" });
   const {
     assets: { data: watchlists },
@@ -32,34 +31,31 @@ export const TvShowsPage = () => {
     submit,
     isSubmitting,
     deleteAsset: deleteTvShow,
-  } = useAssetManager<ITvShowFormData>({ assetType: "tvShows" });
+  } = useAssetManager<ITvShowData, ITvShowFormData>({ assetType: "tvShows" });
 
-  const { isFavorite, toggleFavorite } = useFavorite({ watchlists });
+  const { isFavorite, isPending, toggleFavorite } = useFavorite({ watchlists });
 
-  const resetPaginationRef = useRef<() => void>(() => {});
+  const handler = useHandlers<ITvShowData, ITvShowFormData>();
+
+  const { resetPagination } = usePagination({ data: tvShows });
 
   const { searchTerm, filteredData, handleSearchChange } =
     useAssetSearch<ITvShowData>({
       data: tvShows,
       searchKey: "title",
-      onFilterChange: () => resetPaginationRef.current(),
+      onFilterChange: resetPagination,
     });
 
-  const sortedData = sortByFavorite(filteredData, (show) =>
-    isFavorite(show.title),
+  const sortedData = sortByFavorite(filteredData ?? [], (show) =>
+    isFavorite(show["@key"]),
   );
 
   const {
-    currentPage,
-    totalPages,
-    paginatedData,
+    currentPage: sortedPage,
+    totalPages: sortedTotalPages,
+    paginatedData: sortedPaginatedData,
     onPageChange,
-    resetPagination,
   } = usePagination({ data: sortedData });
-
-  resetPaginationRef.current = resetPagination;
-
-  const handler = useHandlers<ITvShowData>();
 
   const handleFormSubmit = async (formData: ITvShowFormData) => {
     await submit(handler.editItem, formData);
@@ -103,15 +99,17 @@ export const TvShowsPage = () => {
             error={error}
             empty={filteredData.length === 0}
             emptyMessage="Nenhum programa de TV encontrado."
+            onRetry={() => refetch()}
           >
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {paginatedData.map((show) => (
+              {sortedPaginatedData.map((show) => (
                 <TvShowCard
                   key={show["@key"]}
                   show={show}
                   onEdit={handler.openEdit}
                   onDelete={handler.openDelete}
-                  isFavorite={isFavorite(show.title)}
+                  isFavorite={isFavorite(show["@key"])}
+                  isFavoritePending={isPending(show["@key"])}
                   onToggleFavorite={() =>
                     toggleFavorite(show.title, show.description, show["@key"])
                   }
@@ -122,8 +120,8 @@ export const TvShowsPage = () => {
         </div>
 
         <Pagination
-          currentPage={currentPage}
-          totalPages={totalPages}
+          currentPage={sortedPage}
+          totalPages={sortedTotalPages}
           onPageChange={onPageChange}
           className="mt-8"
         />

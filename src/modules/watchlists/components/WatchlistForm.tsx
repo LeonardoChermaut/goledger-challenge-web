@@ -1,6 +1,10 @@
 import { SearchableSelect } from "@/components/SearchableSelect";
-import { ITvShowData } from "@/shared/interfaces/interfaces";
+import {
+  IWatchlistFormData,
+  ITvShowData,
+} from "@/shared/interfaces/interfaces";
 import { FunctionComponent, useMemo, useState } from "react";
+import { useForm } from "react-hook-form";
 
 type WatchlistFormProps = {
   initialData?: {
@@ -14,11 +18,7 @@ type WatchlistFormProps = {
   tvShows: ITvShowData[] | undefined;
 
   onCancel: () => void;
-  onSubmit: (data: {
-    title: string;
-    description: string;
-    tvShows: string[];
-  }) => void;
+  onSubmit: (data: IWatchlistFormData) => void;
 };
 
 export const WatchlistForm: FunctionComponent<WatchlistFormProps> = ({
@@ -29,48 +29,48 @@ export const WatchlistForm: FunctionComponent<WatchlistFormProps> = ({
   isSubmitting,
   isEditing,
 }) => {
-  const [formState, setFormState] = useState({
-    title: initialData?.title || "",
-    description: initialData?.description || "",
-    tvShows: initialData?.tvShows || [],
-    searchModalTerm: "",
+  const [searchModalTerm, setSearchModalTerm] = useState("");
+
+  const {
+    register,
+    handleSubmit,
+    watch,
+    setValue,
+    formState: { errors, isValid },
+  } = useForm<IWatchlistFormData>({
+    defaultValues: {
+      title: initialData?.title ?? "",
+      description: initialData?.description ?? "",
+      tvShows: initialData?.tvShows ?? [],
+    },
+    mode: "onChange",
   });
 
-  const handleChange = (field: keyof typeof formState, value: unknown) =>
-    setFormState((prev) => ({ ...prev, [field]: value }));
+  const selectedTvShows = watch("tvShows");
 
   const filteredModalTvShows = useMemo(
     () =>
       tvShows?.filter((tvShow) =>
-        tvShow.title
-          .toLowerCase()
-          .includes(formState.searchModalTerm.toLowerCase()),
+        tvShow.title.toLowerCase().includes(searchModalTerm.toLowerCase()),
       ) || [],
-    [tvShows, formState.searchModalTerm],
-  ) as ITvShowData[];
+    [tvShows, searchModalTerm],
+  );
 
   const toggleShow = (key: string) => {
-    const current = formState.tvShows;
-
+    const current = selectedTvShows ?? [];
     const next = current.includes(key)
       ? current.filter((k) => k !== key)
       : [...current, key];
-
-    handleChange("tvShows", next);
+    setValue("tvShows", next, { shouldValidate: true });
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    onSubmit({
-      title: formState.title,
-      description: formState.description,
-      tvShows: formState.tvShows,
-    });
-  };
+  const handleFormSubmit = handleSubmit((data) => {
+    onSubmit(data);
+  });
 
   return (
     <form
-      onSubmit={handleSubmit}
+      onSubmit={handleFormSubmit}
       className="space-y-4 max-h-[60vh] overflow-y-auto pr-1"
     >
       <div>
@@ -79,12 +79,15 @@ export const WatchlistForm: FunctionComponent<WatchlistFormProps> = ({
         </label>
         <input
           type="text"
-          value={formState.title}
-          onChange={(e) => handleChange("title", e.target.value)}
-          required
+          {...register("title", { required: "Título é obrigatório" })}
           disabled={isEditing}
           className="w-full rounded-md border border-input bg-secondary px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-inset disabled:opacity-50 disabled:cursor-not-allowed"
         />
+        {errors.title && (
+          <p className="mt-1 text-xs text-destructive">
+            {errors.title.message}
+          </p>
+        )}
       </div>
 
       <div>
@@ -92,8 +95,7 @@ export const WatchlistForm: FunctionComponent<WatchlistFormProps> = ({
           Descrição
         </label>
         <textarea
-          value={formState.description}
-          onChange={(e) => handleChange("description", e.target.value)}
+          {...register("description")}
           rows={2}
           className="w-full rounded-md border border-input bg-secondary px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
         />
@@ -102,13 +104,13 @@ export const WatchlistForm: FunctionComponent<WatchlistFormProps> = ({
       <SearchableSelect
         label="Programas de TV"
         items={filteredModalTvShows}
-        searchTerm={formState.searchModalTerm}
-        onSearchChange={(value) => handleChange("searchModalTerm", value)}
+        searchTerm={searchModalTerm}
+        onSearchChange={setSearchModalTerm}
         renderItem={(tvShow) => (
           <label className="flex items-center gap-2 cursor-pointer text-sm text-foreground transition-colors hover:bg-primary/5 p-1 rounded">
             <input
               type="checkbox"
-              checked={formState.tvShows.includes(tvShow["@key"])}
+              checked={selectedTvShows?.includes(tvShow["@key"]) ?? false}
               onChange={() => toggleShow(tvShow["@key"])}
               className="rounded border-input accent-primary h-4 w-4"
             />
@@ -127,7 +129,7 @@ export const WatchlistForm: FunctionComponent<WatchlistFormProps> = ({
         </button>
         <button
           type="submit"
-          disabled={isSubmitting || !formState.title}
+          disabled={isSubmitting || !isValid}
           className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-50"
         >
           {isSubmitting ? "Salvando..." : "Salvar"}

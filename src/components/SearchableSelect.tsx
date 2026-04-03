@@ -1,7 +1,7 @@
 import { Search } from "lucide-react";
 import { ReactNode } from "react";
 
-type SearchableSelectProps<T> = {
+type SearchableSelectProps<T extends { "@key": string }> = {
   label: string;
   searchTerm: string;
   maxHeight?: string;
@@ -12,7 +12,7 @@ type SearchableSelectProps<T> = {
   onSearchChange: (value: string) => void;
 };
 
-export const SearchableSelect = <T,>({
+export const SearchableSelect = <T extends { "@key": string }>({
   label,
   items,
   searchTerm,
@@ -41,10 +41,8 @@ export const SearchableSelect = <T,>({
       <div
         className={`space-y-1 overflow-y-auto rounded-md border border-input bg-secondary p-2 ${maxHeight}`}
       >
-        {items?.map((item, index) => (
-          <div key={(item["@key"] as unknown as string) ?? `item-${index}`}>
-            {renderItem(item)}
-          </div>
+        {items?.map((item) => (
+          <div key={item["@key"]}>{renderItem(item)}</div>
         ))}
 
         {items?.length === 0 && (

@@ -1,6 +1,11 @@
 import { routes } from "@/shared/routes/routes";
 import { api } from "@/shared/services/service";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  useMutation,
+  useQuery,
+  useQueryClient,
+  UseQueryResult,
+} from "@tanstack/react-query";
 import { toast } from "sonner";
 
 interface ISearchResponse<T> {
@@ -78,36 +83,42 @@ const useDeleteAsset = (assetType: string) => {
   });
 };
 
-interface IAssetManagerOptions {
-  assetType: string;
-}
-
-interface IAssetManagerReturn<T> {
+interface IAssetManagerReturn<TDisplay, TPayload> {
   isSubmitting: boolean;
-  assets: ReturnType<typeof useAssets<T>>;
-  createAsset: ReturnType<typeof useCreateAsset<T>>;
-  updateAsset: ReturnType<typeof useUpdateAsset<T>>;
+  assets: UseQueryResult<TDisplay[]>;
+  createAsset: ReturnType<typeof useCreateAsset<TPayload>>;
+  updateAsset: ReturnType<typeof useUpdateAsset<TPayload>>;
   deleteAsset: ReturnType<typeof useDeleteAsset>;
-  submit: (originalItem: T | null, formData: T) => Promise<unknown>;
+  submit: (
+    originalItem: TDisplay | null,
+    formData: TPayload,
+  ) => Promise<unknown>;
 }
 
-export const useAssetManager = <T extends object>({
+export const useAssetManager = <
+  TDisplay extends { "@key": string },
+  TPayload extends object = TDisplay,
+>({
   assetType,
-}: IAssetManagerOptions): IAssetManagerReturn<T> => {
-  const assets = useAssets<T>(assetType);
-  const createAsset = useCreateAsset<T>(assetType);
-  const updateAsset = useUpdateAsset<T>(assetType);
+}: {
+  assetType: string;
+}): IAssetManagerReturn<TDisplay, TPayload> => {
+  const assets = useAssets<TDisplay>(assetType);
+  const createAsset = useCreateAsset<TPayload>(assetType);
+  const updateAsset = useUpdateAsset<TPayload>(assetType);
   const deleteAsset = useDeleteAsset(assetType);
 
-  const submit = async (originalItem: T | null, formData: T) => {
+  const submit = async (originalItem: TDisplay | null, formData: TPayload) => {
     if (!originalItem) {
-      return createAsset.mutateAsync(formData as Record<string, unknown>);
+      return createAsset.mutateAsync(
+        formData as unknown as Record<string, unknown>,
+      );
     }
 
     return updateAsset.mutateAsync({
-      "@key": (originalItem as T & { "@key": string })["@key"],
+      "@key": originalItem["@key"],
       ...formData,
-    } as T & { "@key": string });
+    } as unknown as TPayload & { "@key": string });
   };
 
   return {

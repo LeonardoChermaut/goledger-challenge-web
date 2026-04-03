@@ -1,9 +1,10 @@
 import { useState } from "react";
 import { useDisclosure } from "./use-disclosure";
 
-export const useHandlers = <T>() => {
-  const [editItem, setEditItem] = useState<T | null>(null);
-  const [deleteItem, setDeleteItem] = useState<T | null>(null);
+// eslint-disable-nextline @typescript-eslint/no-unused-vars
+export const useHandlers = <TDisplay, _TPayload = TDisplay>() => {
+  const [editItem, setEditItem] = useState<TDisplay | null>(null);
+  const [deleteItem, setDeleteItem] = useState<TDisplay | null>(null);
 
   const formDisclosure = useDisclosure();
   const deleteDisclosure = useDisclosure();
@@ -13,12 +14,12 @@ export const useHandlers = <T>() => {
     formDisclosure.open();
   };
 
-  const openEdit = (item: T) => {
+  const openEdit = (item: TDisplay) => {
     setEditItem(item);
     formDisclosure.open();
   };
 
-  const openDelete = (item: T) => {
+  const openDelete = (item: TDisplay) => {
     setDeleteItem(item);
     deleteDisclosure.open();
   };
@@ -41,5 +42,5 @@ export const useHandlers = <T>() => {
     openCreate,
     openEdit,
     openDelete,
-  };
+  } as const;
 };

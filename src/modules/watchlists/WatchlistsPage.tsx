@@ -16,13 +16,12 @@ import {
 } from "@/shared/interfaces/interfaces";
 import { findAssetByKey } from "@/shared/utils/utils";
 import { BookmarkPlus, Plus } from "lucide-react";
-import { useRef } from "react";
 import { WatchlistCard } from "./components/WatchlistCard";
 import { WatchlistForm } from "./components/WatchlistForm";
 
 export const WatchlistsPage = () => {
   const {
-    assets: { data: watchlists, isLoading, error },
+    assets: { data: watchlists, isLoading, error, refetch },
   } = useAssetManager<IWatchlistData>({ assetType: "watchlist" });
   const {
     assets: { data: tvShows },
@@ -32,16 +31,11 @@ export const WatchlistsPage = () => {
     submit,
     isSubmitting,
     deleteAsset: deleteWatchlist,
-  } = useAssetManager<IWatchlistPayload>({ assetType: "watchlist" });
+  } = useAssetManager<IWatchlistData, IWatchlistPayload>({
+    assetType: "watchlist",
+  });
 
-  const resetPaginationRef = useRef<() => void>(() => {});
-
-  const { searchTerm, filteredData, handleSearchChange } =
-    useAssetSearch<IWatchlistData>({
-      data: watchlists,
-      searchKey: "title",
-      onFilterChange: () => resetPaginationRef.current(),
-    });
+  const handler = useHandlers<IWatchlistData, IWatchlistPayload>();
 
   const {
     currentPage,
@@ -49,11 +43,14 @@ export const WatchlistsPage = () => {
     paginatedData,
     onPageChange,
     resetPagination,
-  } = usePagination({ data: filteredData });
+  } = usePagination({ data: watchlists });
 
-  resetPaginationRef.current = resetPagination;
-
-  const handler = useHandlers<IWatchlistData>();
+  const { searchTerm, filteredData, handleSearchChange } =
+    useAssetSearch<IWatchlistData>({
+      data: watchlists,
+      searchKey: "title",
+      onFilterChange: resetPagination,
+    });
 
   const resolveTvShowTitle = (key: string): string =>
     findAssetByKey(tvShows, key)?.title ?? key;
@@ -68,7 +65,7 @@ export const WatchlistsPage = () => {
       })),
     };
 
-    await submit(handler.editItem as IWatchlistPayload | null, payload);
+    await submit(handler.editItem, payload);
     handler.formDisclosure.close();
   };
 
@@ -104,6 +101,7 @@ export const WatchlistsPage = () => {
         error={error}
         empty={filteredData.length === 0}
         emptyMessage="Nenhuma lista encontrada."
+        onRetry={() => refetch()}
       >
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {paginatedData.map((watchlist) => (

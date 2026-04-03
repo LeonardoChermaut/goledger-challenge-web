@@ -1,6 +1,7 @@
 import { SearchableSelect } from "@/components/SearchableSelect";
-import { ITvShowData } from "@/shared/interfaces/interfaces";
-import { FormEvent, FunctionComponent, useMemo, useState } from "react";
+import { ISeasonFormData, ITvShowData } from "@/shared/interfaces/interfaces";
+import { FunctionComponent, useMemo, useState } from "react";
+import { useForm } from "react-hook-form";
 
 type SeasonFormProps = {
   initialData?: {
@@ -14,7 +15,7 @@ type SeasonFormProps = {
   tvShows: ITvShowData[] | undefined;
 
   onCancel: () => void;
-  onSubmit: (data: { tvShow: string; number: number; year: number }) => void;
+  onSubmit: (data: ISeasonFormData) => void;
 };
 
 export const SeasonForm: FunctionComponent<SeasonFormProps> = ({
@@ -25,52 +26,56 @@ export const SeasonForm: FunctionComponent<SeasonFormProps> = ({
   onSubmit,
   onCancel,
 }) => {
-  const [formState, setFormState] = useState({
-    searchModalTerm: "",
-    tvShow: initialData?.tvShow || "",
-    year: initialData?.year ? String(initialData.year) : "",
-    number: initialData?.number ? String(initialData.number) : "",
+  const [searchModalTerm, setSearchModalTerm] = useState("");
+
+  const {
+    register,
+    handleSubmit,
+    watch,
+    setValue,
+    formState: { errors, isValid },
+  } = useForm<ISeasonFormData>({
+    defaultValues: {
+      tvShow: initialData?.tvShow ?? "",
+      number: initialData?.number ? Number(initialData.number) : undefined,
+      year: initialData?.year ? Number(initialData.year) : undefined,
+    },
+    mode: "onChange",
   });
 
-  const handleChange = (field: keyof typeof formState, value: string) =>
-    setFormState((prev) => ({ ...prev, [field]: value }));
+  const selectedTvShow = watch("tvShow");
 
   const filteredModalTvShows = useMemo(
     () =>
       tvShows?.filter((s) =>
-        s.title.toLowerCase().includes(formState.searchModalTerm.toLowerCase()),
+        s.title.toLowerCase().includes(searchModalTerm.toLowerCase()),
       ) || [],
-    [tvShows, formState.searchModalTerm],
+    [tvShows, searchModalTerm],
   );
 
-  const handleSubmit = (e: FormEvent) => {
-    e.preventDefault();
-    onSubmit({
-      tvShow: formState.tvShow,
-      number: Number(formState.number),
-      year: Number(formState.year),
-    });
-  };
-
-  const isValid = formState.tvShow && formState.number && formState.year;
+  const handleFormSubmit = handleSubmit((data) => {
+    onSubmit(data);
+  });
 
   return (
     <form
-      onSubmit={handleSubmit}
+      onSubmit={handleFormSubmit}
       className="space-y-4 max-h-[70vh] overflow-y-auto pr-1"
     >
       <SearchableSelect
         label="Programa de TV"
         items={filteredModalTvShows}
-        searchTerm={formState.searchModalTerm}
-        onSearchChange={(val) => handleChange("searchModalTerm", val)}
+        searchTerm={searchModalTerm}
+        onSearchChange={setSearchModalTerm}
         renderItem={(s) => (
           <label className="flex items-center gap-2 cursor-pointer text-sm text-foreground transition-colors hover:bg-primary/5 p-1 rounded">
             <input
               type="checkbox"
               name="tvShow"
-              checked={formState.tvShow === s["@key"]}
-              onChange={() => handleChange("tvShow", s["@key"])}
+              checked={selectedTvShow === s["@key"]}
+              onChange={() =>
+                setValue("tvShow", s["@key"], { shouldValidate: true })
+              }
               className="rounded-full border-input accent-primary h-4 w-4"
               disabled={isEditing}
             />
@@ -78,6 +83,9 @@ export const SeasonForm: FunctionComponent<SeasonFormProps> = ({
           </label>
         )}
       />
+      {errors.tvShow && (
+        <p className="text-xs text-destructive">{errors.tvShow.message}</p>
+      )}
 
       <div>
         <label className="mb-1 block text-sm font-medium text-foreground">
@@ -85,12 +93,18 @@ export const SeasonForm: FunctionComponent<SeasonFormProps> = ({
         </label>
         <input
           type="number"
-          value={formState.number}
-          onChange={(e) => handleChange("number", e.target.value)}
-          required
+          {...register("number", {
+            required: "Número é obrigatório",
+            valueAsNumber: true,
+          })}
           disabled={isEditing}
           className="w-full rounded-md border border-input bg-secondary px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-50 disabled:cursor-not-allowed"
         />
+        {errors.number && (
+          <p className="mt-1 text-xs text-destructive">
+            {errors.number.message}
+          </p>
+        )}
       </div>
 
       <div>
@@ -99,11 +113,15 @@ export const SeasonForm: FunctionComponent<SeasonFormProps> = ({
         </label>
         <input
           type="number"
-          value={formState.year}
-          onChange={(e) => handleChange("year", e.target.value)}
-          required
+          {...register("year", {
+            required: "Ano é obrigatório",
+            valueAsNumber: true,
+          })}
           className="w-full rounded-md border border-input bg-secondary px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-inset"
         />
+        {errors.year && (
+          <p className="mt-1 text-xs text-destructive">{errors.year.message}</p>
+        )}
       </div>
 
       <div className="flex justify-end gap-3 pt-2">
