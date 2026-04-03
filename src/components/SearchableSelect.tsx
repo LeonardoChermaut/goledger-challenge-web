@@ -41,8 +41,8 @@ export const SearchableSelect = <T extends Record<string, any>>({
       <div
         className={`space-y-1 overflow-y-auto rounded-md border border-input bg-secondary p-2 ${maxHeight}`}
       >
-        {items?.map((item) => (
-          <div key={item["@key"] || Math.random()}>{renderItem(item)}</div>
+        {items?.map((item, index) => (
+          <div key={item["@key"] ?? `item-${index}`}>{renderItem(item)}</div>
         ))}
 
         {items?.length === 0 && (

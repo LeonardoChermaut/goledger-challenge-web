@@ -1,14 +1,14 @@
 import { BookmarkPlus, Film, PlayCircle, Tv } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 
-const navItems = [
+const navigationItems = [
   { path: "/", label: "Programas de TV", icon: Tv },
   { path: "/seasons", label: "Temporadas", icon: Film },
   { path: "/episodes", label: "Episódios", icon: PlayCircle },
   { path: "/watchlists", label: "Minhas Listas", icon: BookmarkPlus },
 ] as const;
 
-export const AppHeader = () => {
+export const Header = () => {
   const location = useLocation();
 
   return (
@@ -22,7 +22,7 @@ export const AppHeader = () => {
         </Link>
 
         <nav className="flex items-center gap-1">
-          {navItems.map((item) => {
+          {navigationItems.map((item) => {
             const isActive = location.pathname === item.path;
 
             return (

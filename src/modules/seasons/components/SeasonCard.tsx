@@ -1,8 +1,8 @@
-import { DropdownMenu } from "@/components/DropdownMenu";
+import { CardActions } from "@/components/CardActions";
 import { cn } from "@/lib/lib";
 import { ISeasonData } from "@/shared/interfaces/interface";
 import { getAgeRecommendationColor, isValidAge } from "@/shared/utils/utils";
-import { Calendar, Heart, Pencil, Trash2 } from "lucide-react";
+import { Calendar, Heart } from "lucide-react";
 import { FunctionComponent } from "react";
 
 type SeasonCardProps = {
@@ -61,27 +61,16 @@ export const SeasonCard: FunctionComponent<SeasonCardProps> = ({
             </span>
           )}
 
-          <DropdownMenu
-            options={[
-              {
-                label: "Editar",
-                icon: <Pencil className="h-3.5 w-3.5" />,
-                onClick: () => onEdit(season),
-              },
-              {
-                label: "Remover",
-                icon: <Trash2 className="h-3.5 w-3.5" />,
-                onClick: () => onDelete(season),
-                variant: "destructive",
-              },
-            ]}
+          <CardActions
+            onEdit={() => onEdit(season)}
+            onDelete={() => onDelete(season)}
           />
         </div>
       </div>
 
       <div className="flex items-center gap-2 text-sm text-muted-foreground mt-auto">
         <Calendar className="h-4 w-4 shrink-0" />
-        <span>Ano de Lançamento: {season.year}</span>
+        <span>Ano de Lancamento: {season.year}</span>
       </div>
     </div>
   );

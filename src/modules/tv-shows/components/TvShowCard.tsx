@@ -1,8 +1,8 @@
-import { DropdownMenu } from "@/components/DropdownMenu";
+import { CardActions } from "@/components/CardActions";
 import { cn } from "@/lib/lib";
 import { ITvShowData } from "@/shared/interfaces/interface";
 import { getAgeRecommendationColor } from "@/shared/utils/utils";
-import { Heart, Pencil, Trash2 } from "lucide-react";
+import { Heart } from "lucide-react";
 import { FunctionComponent } from "react";
 
 type TvShowCardProps = {
@@ -48,20 +48,9 @@ export const TvShowCard: FunctionComponent<TvShowCardProps> = ({
             {show.recommendedAge}+
           </span>
 
-          <DropdownMenu
-            options={[
-              {
-                label: "Editar",
-                icon: <Pencil className="h-3.5 w-3.5" />,
-                onClick: () => onEdit(show),
-              },
-              {
-                label: "Remover",
-                icon: <Trash2 className="h-3.5 w-3.5" />,
-                onClick: () => onDelete(show),
-                variant: "destructive",
-              },
-            ]}
+          <CardActions
+            onEdit={() => onEdit(show)}
+            onDelete={() => onDelete(show)}
           />
         </div>
       </div>

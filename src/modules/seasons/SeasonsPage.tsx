@@ -5,9 +5,10 @@ import { Pagination } from "@/components/Pagination";
 import { QueryResult } from "@/components/QueryResult";
 import { SearchInput } from "@/components/SearchInput";
 import { useAssetSearch } from "@/hooks/use-asset-search";
-import { useAssetManager, useAssets } from "@/hooks/use-assets";
-import { useDisclosure } from "@/hooks/use-disclosure";
+import { useAssetManager } from "@/hooks/use-assets";
+import { useFavorite } from "@/hooks/use-favorite";
 import { useGroupedAssets } from "@/hooks/use-grouped-assets";
+import { useHandlers } from "@/hooks/use-handlers";
 import { usePagination } from "@/hooks/use-pagination";
 import {
   ISeasonData,
@@ -17,22 +18,26 @@ import {
   IWatchlistData,
 } from "@/shared/interfaces/interface";
 import {
+  findAssetByKey,
   getTvShowAge,
   getTvShowTitle,
   sortByFavorite,
 } from "@/shared/utils/utils";
 import { Plus } from "lucide-react";
-import { useState } from "react";
+import { useRef } from "react";
 import { SeasonCard } from "./components/SeasonCard";
 import { SeasonForm } from "./components/SeasonForm";
 
 export const SeasonsPage = () => {
-  const [editItem, setEditItem] = useState<ISeasonData | null>(null);
-  const [deleteItem, setDeleteItem] = useState<ISeasonData | null>(null);
-
-  const { data: seasons, isLoading, error } = useAssets<ISeasonData>("seasons");
-  const { data: tvShows } = useAssets<ITvShowData>("tvShows");
-  const { data: watchlists } = useAssets<IWatchlistData>("watchlist");
+  const {
+    assets: { data: seasons, isLoading, error },
+  } = useAssetManager<ISeasonData>({ assetType: "seasons" });
+  const {
+    assets: { data: tvShows },
+  } = useAssetManager<ITvShowData>({ assetType: "tvShows" });
+  const {
+    assets: { data: watchlists },
+  } = useAssetManager<IWatchlistData>({ assetType: "watchlist" });
 
   const {
     submit,
@@ -40,14 +45,20 @@ export const SeasonsPage = () => {
     deleteAsset: deleteSeason,
   } = useAssetManager<ISeasonPayload>({ assetType: "seasons" });
 
-  const { createAsset: createWatchlist, deleteAsset: deleteWatchlist } =
-    useAssetManager<IWatchlistData>({ assetType: "watchlist" });
+  const { toggleFavorite } = useFavorite({ watchlists });
+
+  const resetPaginationRef = useRef<() => void>(() => {});
 
   const { searchTerm, filteredData, handleSearchChange } = useAssetSearch({
     data: seasons,
     customFilter: (item, term) =>
       getTvShowTitle(item, tvShows).toLowerCase().includes(term),
-    onFilterChange: () => resetPagination(),
+    onFilterChange: () => resetPaginationRef.current(),
+  });
+
+  const sortedSeasons = sortByFavorite(filteredData, (season) => {
+    const tvShow = findAssetByKey(tvShows, season.tvShow["@key"]);
+    return watchlists?.some((w) => w.title === tvShow?.title) || false;
   });
 
   const {
@@ -56,64 +67,16 @@ export const SeasonsPage = () => {
     paginatedData,
     onPageChange,
     resetPagination,
-  } = usePagination({ data: filteredData });
+  } = usePagination({ data: sortedSeasons });
 
-  const formDisclosure = useDisclosure();
-  const deleteDisclosure = useDisclosure();
-
-  const isSeasonFavorite = (season: ISeasonData): boolean => {
-    const tvShow = tvShows?.find(
-      (item) => item["@key"] === season.tvShow["@key"],
-    );
-    if (!tvShow) {
-      return false;
-    }
-
-    return (
-      watchlists?.some((watchlist) => watchlist.title === tvShow.title) || false
-    );
-  };
-
-  const sortedSeasons = sortByFavorite(paginatedData, isSeasonFavorite);
+  resetPaginationRef.current = resetPagination;
 
   const { groups: groupedSeasons } = useGroupedAssets({
-    data: sortedSeasons,
+    data: paginatedData,
     groupBy: (season) => getTvShowTitle(season, tvShows),
   });
 
-  const handleToggleFavorite = async (season: ISeasonData) => {
-    const tvShow = tvShows?.find((t) => t["@key"] === season.tvShow["@key"]);
-    if (!tvShow) {
-      return;
-    }
-
-    const favoritesList = watchlists?.find((w) => w.title === tvShow.title);
-
-    if (favoritesList) {
-      await deleteWatchlist.mutateAsync(favoritesList["@key"]);
-    } else {
-      await createWatchlist.mutateAsync({
-        title: tvShow.title,
-        description: tvShow.description,
-        tvShows: [{ "@assetType": "tvShows", "@key": tvShow["@key"] }],
-      });
-    }
-  };
-
-  const openCreate = () => {
-    setEditItem(null);
-    formDisclosure.open();
-  };
-
-  const openEdit = (item: ISeasonData) => {
-    setEditItem(item);
-    formDisclosure.open();
-  };
-
-  const openDelete = (item: ISeasonData) => {
-    setDeleteItem(item);
-    deleteDisclosure.open();
-  };
+  const handler = useHandlers<ISeasonData>();
 
   const handleFormSubmit = async (formData: ISeasonFormData) => {
     const payload: ISeasonPayload = {
@@ -122,18 +85,14 @@ export const SeasonsPage = () => {
       year: formData.year,
     };
 
-    await submit(editItem as ISeasonPayload | null, payload);
-    formDisclosure.close();
+    await submit(handler.editItem as ISeasonPayload | null, payload);
+    handler.formDisclosure.close();
   };
 
   const handleDeleteConfirm = async () => {
-    if (!deleteItem) {
-      return;
-    }
-
-    await deleteSeason.mutateAsync(deleteItem["@key"]);
-    deleteDisclosure.close();
-    setDeleteItem(null);
+    if (!handler.deleteItem) return;
+    await deleteSeason.mutateAsync(handler.deleteItem["@key"]);
+    handler.deleteDisclosure.close();
   };
 
   return (
@@ -142,7 +101,7 @@ export const SeasonsPage = () => {
       description="Gerencie as temporadas dos programas de TV"
       action={
         <button
-          onClick={openCreate}
+          onClick={handler.openCreate}
           className="flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
         >
           <Plus className="h-4 w-4" /> Adicionar Temporada
@@ -176,11 +135,30 @@ export const SeasonsPage = () => {
                       <SeasonCard
                         key={season["@key"]}
                         season={season}
-                        onEdit={openEdit}
-                        onDelete={openDelete}
+                        onEdit={handler.openEdit}
+                        onDelete={handler.openDelete}
                         tvShowTitle={showTitle}
-                        isFavorite={isSeasonFavorite(season)}
-                        onToggleFavorite={handleToggleFavorite}
+                        isFavorite={
+                          watchlists?.some(
+                            (w) =>
+                              w.title ===
+                              findAssetByKey(tvShows, season.tvShow["@key"])
+                                ?.title,
+                          ) || false
+                        }
+                        onToggleFavorite={() => {
+                          const tvShow = findAssetByKey(
+                            tvShows,
+                            season.tvShow["@key"],
+                          );
+                          if (tvShow) {
+                            toggleFavorite(
+                              tvShow.title,
+                              tvShow.description,
+                              tvShow["@key"],
+                            );
+                          }
+                        }}
                         tvShowAge={getTvShowAge(season, tvShows ?? [])}
                       />
                     ))}
@@ -200,38 +178,38 @@ export const SeasonsPage = () => {
       </div>
 
       <Modal
-        open={formDisclosure.isOpen}
-        onClose={formDisclosure.close}
-        title={editItem ? "Editar Temporada" : "Nova Temporada"}
+        open={handler.formDisclosure.isOpen}
+        onClose={handler.formDisclosure.close}
+        title={handler.editItem ? "Editar Temporada" : "Nova Temporada"}
       >
         <SeasonForm
           initialData={
-            editItem
+            handler.editItem
               ? {
-                  tvShow: editItem.tvShow["@key"],
-                  number: editItem.number,
-                  year: editItem.year,
+                  tvShow: handler.editItem.tvShow["@key"],
+                  number: handler.editItem.number,
+                  year: handler.editItem.year,
                 }
               : undefined
           }
           tvShows={tvShows}
           onSubmit={handleFormSubmit}
-          onCancel={formDisclosure.close}
+          onCancel={handler.formDisclosure.close}
           isSubmitting={isSubmitting}
-          isEditing={!!editItem}
+          isEditing={!!handler.editItem}
         />
       </Modal>
 
       <ConfirmDialog
         title="Remover Temporada"
-        open={deleteDisclosure.isOpen}
+        open={handler.deleteDisclosure.isOpen}
         onConfirm={handleDeleteConfirm}
-        onClose={deleteDisclosure.close}
+        onClose={handler.deleteDisclosure.close}
         loading={deleteSeason.isPending}
-        message={`Deseja remover a Temporada ${deleteItem?.number} de ${getTvShowTitle(
-          deleteItem!,
+        message={`Deseja remover a Temporada ${handler.deleteItem?.number} de ${getTvShowTitle(
+          handler.deleteItem!,
           tvShows,
-        )}? Esta ação não pode ser desfeita.`}
+        )}? Esta acao nao pode ser desfeita.`}
       />
     </PageShell>
   );

@@ -5,8 +5,8 @@ import { Pagination } from "@/components/Pagination";
 import { QueryResult } from "@/components/QueryResult";
 import { SearchInput } from "@/components/SearchInput";
 import { useAssetSearch } from "@/hooks/use-asset-search";
-import { useAssetManager, useAssets } from "@/hooks/use-assets";
-import { useDisclosure } from "@/hooks/use-disclosure";
+import { useAssetManager } from "@/hooks/use-assets";
+import { useHandlers } from "@/hooks/use-handlers";
 import { usePagination } from "@/hooks/use-pagination";
 import {
   ITvShowData,
@@ -16,33 +16,30 @@ import {
 } from "@/shared/interfaces/interface";
 import { findAssetByKey } from "@/shared/utils/utils";
 import { Plus } from "lucide-react";
-import { useState } from "react";
+import { useRef } from "react";
 import { WatchlistCard } from "./components/WatchlistCard";
 import { WatchlistForm } from "./components/WatchlistForm";
 
 export const WatchlistsPage = () => {
-  const [editItem, setEditItem] = useState<IWatchlistData | null>(null);
-  const [deleteItem, setDeleteItem] = useState<IWatchlistData | null>(null);
-
   const {
-    data: watchlists,
-    isLoading,
-    error,
-  } = useAssets<IWatchlistData>("watchlist");
-  const { data: tvShows } = useAssets<ITvShowData>("tvShows");
+    assets: { data: watchlists, isLoading, error },
+  } = useAssetManager<IWatchlistData>({ assetType: "watchlist" });
+  const {
+    assets: { data: tvShows },
+  } = useAssetManager<ITvShowData>({ assetType: "tvShows" });
 
   const {
     submit,
     isSubmitting,
     deleteAsset: deleteWatchlist,
-  } = useAssetManager<IWatchlistPayload>({
-    assetType: "watchlist",
-  });
+  } = useAssetManager<IWatchlistPayload>({ assetType: "watchlist" });
+
+  const resetPaginationRef = useRef<() => void>(() => {});
 
   const { searchTerm, filteredData, handleSearchChange } = useAssetSearch({
     data: watchlists,
     searchKey: "title",
-    onFilterChange: () => resetPagination(),
+    onFilterChange: () => resetPaginationRef.current(),
   });
 
   const {
@@ -53,26 +50,12 @@ export const WatchlistsPage = () => {
     resetPagination,
   } = usePagination({ data: filteredData });
 
-  const formDisclosure = useDisclosure();
-  const deleteDisclosure = useDisclosure();
+  resetPaginationRef.current = resetPagination;
 
-  const getTvShowTitle = (key: string): string =>
+  const handler = useHandlers<IWatchlistData>();
+
+  const resolveTvShowTitle = (key: string): string =>
     findAssetByKey(tvShows, key)?.title ?? key;
-
-  const openCreate = () => {
-    setEditItem(null);
-    formDisclosure.open();
-  };
-
-  const openEdit = (item: IWatchlistData) => {
-    setEditItem(item);
-    formDisclosure.open();
-  };
-
-  const openDelete = (item: IWatchlistData) => {
-    setDeleteItem(item);
-    deleteDisclosure.open();
-  };
 
   const handleFormSubmit = async (formData: IWatchlistFormData) => {
     const payload: IWatchlistPayload = {
@@ -84,18 +67,14 @@ export const WatchlistsPage = () => {
       })),
     };
 
-    await submit(editItem as IWatchlistPayload | null, payload);
-    formDisclosure.close();
+    await submit(handler.editItem as IWatchlistPayload | null, payload);
+    handler.formDisclosure.close();
   };
 
   const handleDeleteConfirm = async () => {
-    if (!deleteItem) {
-      return;
-    }
-
-    await deleteWatchlist.mutateAsync(deleteItem["@key"]);
-    deleteDisclosure.close();
-    setDeleteItem(null);
+    if (!handler.deleteItem) return;
+    await deleteWatchlist.mutateAsync(handler.deleteItem["@key"]);
+    handler.deleteDisclosure.close();
   };
 
   return (
@@ -104,7 +83,7 @@ export const WatchlistsPage = () => {
       description="Crie e gerencie suas listas de favoritos"
       action={
         <button
-          onClick={openCreate}
+          onClick={handler.openCreate}
           className="flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
         >
           <Plus className="h-4 w-4" /> Nova Lista
@@ -125,13 +104,13 @@ export const WatchlistsPage = () => {
         emptyMessage="Nenhuma lista encontrada."
       >
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {paginatedData.map((wl) => (
+          {paginatedData.map((watchlist) => (
             <WatchlistCard
-              key={wl["@key"]}
-              watchlist={wl}
-              getTvShowTitle={getTvShowTitle}
-              onEdit={openEdit}
-              onDelete={openDelete}
+              key={watchlist["@key"]}
+              watchlist={watchlist}
+              getTvShowTitle={resolveTvShowTitle}
+              onEdit={handler.openEdit}
+              onDelete={handler.openDelete}
             />
           ))}
         </div>
@@ -145,38 +124,41 @@ export const WatchlistsPage = () => {
       />
 
       <Modal
-        open={formDisclosure.isOpen}
-        onClose={formDisclosure.close}
+        open={handler.formDisclosure.isOpen}
+        onClose={handler.formDisclosure.close}
         title={
-          editItem ? "Editar Lista de Favoritos" : "Nova Lista de Favoritos"
+          handler.editItem
+            ? "Editar Lista de Favoritos"
+            : "Nova Lista de Favoritos"
         }
       >
         <WatchlistForm
           initialData={
-            editItem
+            handler.editItem
               ? {
-                  title: editItem.title,
-                  description: editItem.description || "",
+                  title: handler.editItem.title,
+                  description: handler.editItem.description || "",
                   tvShows:
-                    editItem.tvShows?.map((tvshow) => tvshow["@key"]) || [],
+                    handler.editItem.tvShows?.map((tvshow) => tvshow["@key"]) ||
+                    [],
                 }
               : undefined
           }
           tvShows={tvShows}
-          isEditing={!!editItem}
+          isEditing={!!handler.editItem}
           onSubmit={handleFormSubmit}
           isSubmitting={isSubmitting}
-          onCancel={formDisclosure.close}
+          onCancel={handler.formDisclosure.close}
         />
       </Modal>
 
       <ConfirmDialog
-        open={deleteDisclosure.isOpen}
+        open={handler.deleteDisclosure.isOpen}
         onConfirm={handleDeleteConfirm}
-        onClose={deleteDisclosure.close}
+        onClose={handler.deleteDisclosure.close}
         loading={deleteWatchlist.isPending}
         title="Remover Lista de Favoritos"
-        message={`Deseja remover "${deleteItem?.title}"? Esta ação não pode ser desfeita.`}
+        message={`Deseja remover "${handler.deleteItem?.title}"? Esta acao nao pode ser desfeita.`}
       />
     </PageShell>
   );

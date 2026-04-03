@@ -1,9 +1,8 @@
-import { BookmarkPlus, Film, Github, PlayCircle, Tv } from "lucide-react";
+import { BookmarkPlus, FilmIcon, Github, PlayCircle, Tv } from "lucide-react";
 import { Link } from "react-router-dom";
-
 const navItems = [
   { path: "/", label: "Programas de TV", icon: Tv },
-  { path: "/seasons", label: "Temporadas", icon: Film },
+  { path: "/seasons", label: "Temporadas", icon: FilmIcon },
   { path: "/episodes", label: "Episódios", icon: PlayCircle },
   { path: "/watchlists", label: "Minhas Listas", icon: BookmarkPlus },
 ] as const;
@@ -22,7 +21,7 @@ export const Footer = () => {
             </Link>
             <p className="max-w-xs text-sm text-muted-foreground">
               A melhor plataforma para gerenciar e acompanhar seus programas de
-              TV, temporadas e episódios favoritos.
+              TV, temporadas e episodios favoritos.
             </p>
             <div className="flex items-center gap-4">
               <a
@@ -39,7 +38,7 @@ export const Footer = () => {
 
           <div>
             <h3 className="mb-4 text-sm font-semibold uppercase tracking-wider text-foreground">
-              Navegação
+              Navegacao
             </h3>
             <ul className="grid gap-2">
               {navItems.map((item) => (
@@ -66,7 +65,7 @@ export const Footer = () => {
                   href="#"
                   className="text-sm text-muted-foreground transition-colors hover:text-primary"
                 >
-                  Documentação
+                  Documentacao
                 </a>
               </li>
               <li>
@@ -93,7 +92,7 @@ export const Footer = () => {
               Newsletter
             </h3>
             <p className="mb-4 text-sm text-muted-foreground">
-              Receba as últimas novidades sobre séries e filmes.
+              Receba as ultimas novidades sobre series e filmes.
             </p>
             <div className="flex items-center gap-2">
               <input

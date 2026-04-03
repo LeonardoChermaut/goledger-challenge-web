@@ -5,9 +5,10 @@ import { Pagination } from "@/components/Pagination";
 import { QueryResult } from "@/components/QueryResult";
 import { SearchInput } from "@/components/SearchInput";
 import { useAssetSearch } from "@/hooks/use-asset-search";
-import { useAssetManager, useAssets } from "@/hooks/use-assets";
-import { useDisclosure } from "@/hooks/use-disclosure";
+import { useAssetManager } from "@/hooks/use-assets";
+import { useFavorite } from "@/hooks/use-favorite";
 import { useGroupedAssets } from "@/hooks/use-grouped-assets";
+import { useHandlers } from "@/hooks/use-handlers";
 import { usePagination } from "@/hooks/use-pagination";
 import {
   IEpisodeData,
@@ -25,23 +26,23 @@ import {
   sortByFavorite,
 } from "@/shared/utils/utils";
 import { Plus } from "lucide-react";
-import { useState } from "react";
+import { useRef } from "react";
 import { EpisodeCard } from "./components/EpisodeCard";
 import { EpisodeForm } from "./components/EpisodeForm";
 
 export const EpisodesPage = () => {
-  const [editItem, setEditItem] = useState<IEpisodeData | null>(null);
-  const [deleteItem, setDeleteItem] = useState<IEpisodeData | null>(null);
-
   const {
-    data: episodes,
-    isLoading,
-    error,
-  } = useAssets<IEpisodeData>("episodes");
-
-  const { data: seasons } = useAssets<ISeasonData>("seasons");
-  const { data: tvShows } = useAssets<ITvShowData>("tvShows");
-  const { data: watchlists } = useAssets<IWatchlistData>("watchlist");
+    assets: { data: episodes, isLoading, error },
+  } = useAssetManager<IEpisodeData>({ assetType: "episodes" });
+  const {
+    assets: { data: seasons },
+  } = useAssetManager<ISeasonData>({ assetType: "seasons" });
+  const {
+    assets: { data: tvShows },
+  } = useAssetManager<ITvShowData>({ assetType: "tvShows" });
+  const {
+    assets: { data: watchlists },
+  } = useAssetManager<IWatchlistData>({ assetType: "watchlist" });
 
   const {
     submit,
@@ -49,22 +50,15 @@ export const EpisodesPage = () => {
     deleteAsset: deleteEpisode,
   } = useAssetManager<IEpisodePayload>({ assetType: "episodes" });
 
-  const { createAsset: createWatchlist, deleteAsset: deleteWatchlist } =
-    useAssetManager<IWatchlistData>({ assetType: "watchlist" });
+  const { toggleFavorite } = useFavorite({ watchlists });
+
+  const resetPaginationRef = useRef<() => void>(() => {});
 
   const { searchTerm, filteredData, handleSearchChange } = useAssetSearch({
     data: episodes,
     searchKey: "title",
-    onFilterChange: () => resetPagination(),
+    onFilterChange: () => resetPaginationRef.current(),
   });
-
-  const {
-    currentPage,
-    totalPages,
-    paginatedData,
-    onPageChange,
-    resetPagination,
-  } = usePagination({ data: filteredData });
 
   const isEpisodeFavorite = (episode: IEpisodeData): boolean => {
     const season = findAssetByKey(seasons, episode.season["@key"]);
@@ -82,16 +76,25 @@ export const EpisodesPage = () => {
     );
   };
 
-  const sortedEpisodes = sortByFavorite(paginatedData, isEpisodeFavorite);
+  const sortedEpisodes = sortByFavorite(filteredData, isEpisodeFavorite);
+
+  const {
+    currentPage,
+    totalPages,
+    paginatedData,
+    onPageChange,
+    resetPagination,
+  } = usePagination({ data: sortedEpisodes });
+
+  resetPaginationRef.current = resetPagination;
 
   const { groups: groupedEpisodes } = useGroupedAssets({
-    data: sortedEpisodes,
+    data: paginatedData,
     groupBy: (episode) =>
       getTvShowTitleFromEpisode(episode, seasons ?? [], tvShows ?? []),
   });
 
-  const formDisclosure = useDisclosure();
-  const deleteDisclosure = useDisclosure();
+  const handler = useHandlers<IEpisodeData>();
 
   const handleToggleFavorite = async (ep: IEpisodeData) => {
     const season = findAssetByKey(seasons, ep.season["@key"]);
@@ -104,32 +107,7 @@ export const EpisodesPage = () => {
       return;
     }
 
-    const favoritesList = watchlists?.find((w) => w.title === tvShow.title);
-
-    if (favoritesList) {
-      await deleteWatchlist.mutateAsync(favoritesList["@key"]);
-    } else {
-      await createWatchlist.mutateAsync({
-        title: tvShow.title,
-        description: tvShow.description,
-        tvShows: [{ "@assetType": "tvShows", "@key": tvShow["@key"] }],
-      });
-    }
-  };
-
-  const openCreate = () => {
-    setEditItem(null);
-    formDisclosure.open();
-  };
-
-  const openEdit = (item: IEpisodeData) => {
-    setEditItem(item);
-    formDisclosure.open();
-  };
-
-  const openDelete = (item: IEpisodeData) => {
-    setDeleteItem(item);
-    deleteDisclosure.open();
+    await toggleFavorite(tvShow.title, tvShow.description, tvShow["@key"]);
   };
 
   const handleFormSubmit = async (formData: IEpisodeFormData) => {
@@ -144,37 +122,36 @@ export const EpisodesPage = () => {
       rating: formData.rating,
     };
 
-    await submit(editItem as IEpisodePayload | null, payload);
-    formDisclosure.close();
+    await submit(handler.editItem as IEpisodePayload | null, payload);
+    handler.formDisclosure.close();
   };
 
   const handleDeleteConfirm = async () => {
-    if (!deleteItem) {
+    if (!handler.deleteItem) {
       return;
     }
 
-    await deleteEpisode.mutateAsync(deleteItem["@key"]);
-    deleteDisclosure.close();
-    setDeleteItem(null);
+    await deleteEpisode.mutateAsync(handler.deleteItem["@key"]);
+    handler.deleteDisclosure.close();
   };
 
   return (
     <PageShell
-      title="Episódios"
-      description="Navegue e gerencie os episódios"
+      title="Episodios"
+      description="Navegue e gerencie os episodios"
       action={
         <button
-          onClick={openCreate}
+          onClick={handler.openCreate}
           className="flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
         >
-          <Plus className="h-4 w-4" /> Adicionar Episódio
+          <Plus className="h-4 w-4" /> Adicionar Episodio
         </button>
       }
     >
       <SearchInput
         value={searchTerm}
         onChange={handleSearchChange}
-        placeholder="Pesquisar episódios..."
+        placeholder="Pesquisar episodios..."
         className="mb-8"
       />
 
@@ -184,7 +161,7 @@ export const EpisodesPage = () => {
             loading={isLoading}
             error={error}
             empty={filteredData.length === 0}
-            emptyMessage="Nenhum episódio encontrado."
+            emptyMessage="Nenhum episodio encontrado."
           >
             <div className="space-y-12">
               {groupedEpisodes.map(([showTitle, items], index) => (
@@ -199,8 +176,8 @@ export const EpisodesPage = () => {
                       <EpisodeCard
                         key={episode["@key"]}
                         episode={episode}
-                        onEdit={openEdit}
-                        onDelete={openDelete}
+                        onEdit={handler.openEdit}
+                        onDelete={handler.openDelete}
                         isFavorite={isEpisodeFavorite(episode)}
                         onToggleFavorite={handleToggleFavorite}
                         seasonLabel={getEpisodeSeasonLabel(
@@ -231,41 +208,43 @@ export const EpisodesPage = () => {
       </div>
 
       <Modal
-        open={formDisclosure.isOpen}
-        onClose={formDisclosure.close}
-        title={editItem ? "Editar Episódio" : "Novo Episódio"}
+        open={handler.formDisclosure.isOpen}
+        onClose={handler.formDisclosure.close}
+        title={handler.editItem ? "Editar Episodio" : "Novo Episodio"}
       >
         <EpisodeForm
           initialData={
-            editItem
+            handler.editItem
               ? {
-                  season: editItem.season["@key"],
-                  episodeNumber: editItem.episodeNumber,
-                  title: editItem.title,
-                  releaseDate: editItem.releaseDate
-                    ? editItem.releaseDate.slice(0, 10)
+                  season: handler.editItem.season["@key"],
+                  episodeNumber: handler.editItem.episodeNumber,
+                  title: handler.editItem.title,
+                  releaseDate: handler.editItem.releaseDate
+                    ? handler.editItem.releaseDate.slice(0, 10)
                     : "",
-                  description: editItem.description,
+                  description: handler.editItem.description,
                   rating:
-                    editItem.rating != null ? String(editItem.rating) : "",
+                    handler.editItem.rating != null
+                      ? String(handler.editItem.rating)
+                      : "",
                 }
               : undefined
           }
           seasons={seasons}
           tvShows={tvShows}
           onSubmit={handleFormSubmit}
-          onCancel={formDisclosure.close}
+          onCancel={handler.formDisclosure.close}
           isSubmitting={isSubmitting}
-          isEditing={!!editItem}
+          isEditing={!!handler.editItem}
         />
       </Modal>
 
       <ConfirmDialog
-        open={deleteDisclosure.isOpen}
-        onClose={deleteDisclosure.close}
+        open={handler.deleteDisclosure.isOpen}
+        onClose={handler.deleteDisclosure.close}
         onConfirm={handleDeleteConfirm}
-        title="Remover Episódio"
-        message={`Deseja remover o Episódio ${deleteItem?.episodeNumber} de "${deleteItem?.title}"? Esta ação não pode ser desfeita.`}
+        title="Remover Episodio"
+        message={`Deseja remover o Episodio ${handler.deleteItem?.episodeNumber} de "${handler.deleteItem?.title}"? Esta acao nao pode ser desfeita.`}
         loading={deleteEpisode.isPending}
       />
     </PageShell>

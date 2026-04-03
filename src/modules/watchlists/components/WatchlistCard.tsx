@@ -1,6 +1,6 @@
-import { DropdownMenu } from "@/components/DropdownMenu";
+import { CardActions } from "@/components/CardActions";
 import { IWatchlistData } from "@/shared/interfaces/interface";
-import { Pencil, Trash2, Tv } from "lucide-react";
+import { Tv } from "lucide-react";
 import { FunctionComponent } from "react";
 
 type WatchlistCardProps = {
@@ -23,20 +23,9 @@ export const WatchlistCard: FunctionComponent<WatchlistCardProps> = ({
           {watchlist.title}
         </h3>
 
-        <DropdownMenu
-          options={[
-            {
-              label: "Editar",
-              icon: <Pencil className="h-3.5 w-3.5" />,
-              onClick: () => onEdit(watchlist),
-            },
-            {
-              label: "Remover",
-              icon: <Trash2 className="h-3.5 w-3.5" />,
-              onClick: () => onDelete(watchlist),
-              variant: "destructive",
-            },
-          ]}
+        <CardActions
+          onEdit={() => onEdit(watchlist)}
+          onDelete={() => onDelete(watchlist)}
         />
       </div>
 

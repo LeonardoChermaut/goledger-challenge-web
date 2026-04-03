@@ -1,4 +1,4 @@
-import { DropdownMenu } from "@/components/DropdownMenu";
+import { CardActions } from "@/components/CardActions";
 import { cn } from "@/lib/lib";
 import { IEpisodeData } from "@/shared/interfaces/interface";
 import {
@@ -8,7 +8,7 @@ import {
   isValidAge,
   isValidEpisodeRating,
 } from "@/shared/utils/utils";
-import { Calendar, Heart, Pencil, Star, Trash2 } from "lucide-react";
+import { Calendar, Heart, Star } from "lucide-react";
 import { FunctionComponent } from "react";
 
 type EpisodeCardProps = {
@@ -87,20 +87,9 @@ export const EpisodeCard: FunctionComponent<EpisodeCardProps> = ({
             </span>
           )}
 
-          <DropdownMenu
-            options={[
-              {
-                label: "Editar",
-                icon: <Pencil className="h-3.5 w-3.5" />,
-                onClick: () => onEdit(episode),
-              },
-              {
-                label: "Remover",
-                icon: <Trash2 className="h-3.5 w-3.5" />,
-                onClick: () => onDelete(episode),
-                variant: "destructive",
-              },
-            ]}
+          <CardActions
+            onEdit={() => onEdit(episode)}
+            onDelete={() => onDelete(episode)}
           />
         </div>
       </div>

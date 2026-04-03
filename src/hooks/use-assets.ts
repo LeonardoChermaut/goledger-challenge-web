@@ -7,7 +7,7 @@ interface ISearchResponse<T> {
   result: T[];
 }
 
-export const useAssets = <T>(assetType: string, enabled = true) =>
+const useAssets = <T>(assetType: string, enabled = true) =>
   useQuery({
     queryKey: ["assets", assetType],
     queryFn: async () => {
@@ -84,6 +84,7 @@ interface IAssetManagerOptions<T> {
 
 interface IAssetManagerReturn<T> {
   isSubmitting: boolean;
+  assets: ReturnType<typeof useAssets<T>>;
   createAsset: ReturnType<typeof useCreateAsset<T>>;
   updateAsset: ReturnType<typeof useUpdateAsset<T>>;
   deleteAsset: ReturnType<typeof useDeleteAsset>;
@@ -93,6 +94,7 @@ interface IAssetManagerReturn<T> {
 export const useAssetManager = <T extends object>({
   assetType,
 }: IAssetManagerOptions<T>): IAssetManagerReturn<T> => {
+  const assets = useAssets<T>(assetType);
   const createAsset = useCreateAsset<T>(assetType);
   const updateAsset = useUpdateAsset<T>(assetType);
   const deleteAsset = useDeleteAsset(assetType);
@@ -110,6 +112,7 @@ export const useAssetManager = <T extends object>({
 
   return {
     submit,
+    assets,
     createAsset,
     updateAsset,
     deleteAsset,

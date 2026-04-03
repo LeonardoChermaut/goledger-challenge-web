@@ -2,8 +2,8 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
-import { AppHeader } from "./components/AppHeader";
 import { Footer } from "./components/Footer";
+import { Header } from "./components/Header";
 import { EpisodesPage } from "./modules/episodes/EpisodesPage";
 import { NotFoundPage } from "./modules/not-found/NotFoundPage";
 
@@ -27,7 +27,7 @@ export const App = () => (
       <Sonner />
       <BrowserRouter>
         <div className="flex min-h-screen flex-col bg-background font-sans antialiased">
-          <AppHeader />
+          <Header />
           <main className="flex-grow">
             <Routes>
               <Route path={routes.route.home} element={<TvShowsPage />} />
