@@ -1,6 +1,6 @@
 import { CardActions } from "@/components/CardActions";
 import { watchlistGradients } from "@/shared/constants/constants";
-import { IWatchlistData } from "@/shared/interfaces/interface";
+import { IWatchlistData } from "@/shared/interfaces/interfaces";
 import { getGradient } from "@/shared/utils/utils";
 import { BookmarkPlus, Tv } from "lucide-react";
 import { FunctionComponent } from "react";

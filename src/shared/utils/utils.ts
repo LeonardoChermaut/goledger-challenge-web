@@ -2,7 +2,7 @@ import {
   IEpisodeData,
   ISeasonData,
   ITvShowData,
-} from "../interfaces/interface";
+} from "../interfaces/interfaces";
 
 export const isValidRating = (value: number): boolean => {
   if (value < 0 || value > 10) {

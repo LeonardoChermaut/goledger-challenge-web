@@ -1,4 +1,4 @@
-import { IWatchlistData } from "@/shared/interfaces/interface";
+import { IWatchlistData } from "@/shared/interfaces/interfaces";
 import { useAssetManager } from "./use-assets";
 
 interface IUseFavoriteOptions {

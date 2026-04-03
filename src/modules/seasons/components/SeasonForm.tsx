@@ -1,5 +1,5 @@
 import { SearchableSelect } from "@/components/SearchableSelect";
-import { ITvShowData } from "@/shared/interfaces/interface";
+import { ITvShowData } from "@/shared/interfaces/interfaces";
 import { FormEvent, FunctionComponent, useMemo, useState } from "react";
 
 type SeasonFormProps = {

@@ -13,7 +13,7 @@ import {
   ITvShowData,
   ITvShowFormData,
   IWatchlistData,
-} from "@/shared/interfaces/interface";
+} from "@/shared/interfaces/interfaces";
 import { sortByFavorite } from "@/shared/utils/utils";
 import { Plus, Tv } from "lucide-react";
 import { useRef } from "react";

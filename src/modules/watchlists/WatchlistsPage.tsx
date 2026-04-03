@@ -13,9 +13,9 @@ import {
   IWatchlistData,
   IWatchlistFormData,
   IWatchlistPayload,
-} from "@/shared/interfaces/interface";
+} from "@/shared/interfaces/interfaces";
 import { findAssetByKey } from "@/shared/utils/utils";
-import { Plus, BookmarkPlus } from "lucide-react";
+import { BookmarkPlus, Plus } from "lucide-react";
 import { useRef } from "react";
 import { WatchlistCard } from "./components/WatchlistCard";
 import { WatchlistForm } from "./components/WatchlistForm";

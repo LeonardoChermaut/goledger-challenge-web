@@ -1,5 +1,5 @@
 import { SearchableSelect } from "@/components/SearchableSelect";
-import { ISeasonData, ITvShowData } from "@/shared/interfaces/interface";
+import { ISeasonData, ITvShowData } from "@/shared/interfaces/interfaces";
 import { isValidRating } from "@/shared/utils/utils";
 import { FormEvent, FunctionComponent, useMemo, useState } from "react";
 

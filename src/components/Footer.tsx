@@ -1,6 +1,6 @@
+import { routes } from "@/shared/routes/routes";
 import { BookmarkPlus, Film, Github, PlayCircle, Tv } from "lucide-react";
 import { Link } from "react-router-dom";
-import { routes } from "@/shared/routes/routes";
 
 const navItems = [
   { path: routes.route.tvshows, label: "Programas de TV", icon: Tv },

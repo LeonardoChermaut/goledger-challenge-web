@@ -17,7 +17,7 @@ import {
   ISeasonData,
   ITvShowData,
   IWatchlistData,
-} from "@/shared/interfaces/interface";
+} from "@/shared/interfaces/interfaces";
 import {
   findAssetByKey,
   getEpisodeSeasonLabel,
@@ -25,7 +25,7 @@ import {
   getTvShowTitleFromEpisode,
   sortByFavorite,
 } from "@/shared/utils/utils";
-import { Plus, PlayCircle } from "lucide-react";
+import { PlayCircle, Plus } from "lucide-react";
 import { useRef } from "react";
 import { EpisodeCard } from "./components/EpisodeCard";
 import { EpisodeForm } from "./components/EpisodeForm";

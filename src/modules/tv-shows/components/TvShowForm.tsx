@@ -1,4 +1,4 @@
-import { ITvShowData } from "@/shared/interfaces/interface";
+import { ITvShowData } from "@/shared/interfaces/interfaces";
 import { FunctionComponent, useState } from "react";
 
 type TvShowFormProps = {

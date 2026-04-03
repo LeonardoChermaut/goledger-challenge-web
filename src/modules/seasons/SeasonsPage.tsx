@@ -16,14 +16,14 @@ import {
   ISeasonPayload,
   ITvShowData,
   IWatchlistData,
-} from "@/shared/interfaces/interface";
+} from "@/shared/interfaces/interfaces";
 import {
   findAssetByKey,
   getTvShowAge,
   getTvShowTitle,
   sortByFavorite,
 } from "@/shared/utils/utils";
-import { Plus, Film } from "lucide-react";
+import { Film, Plus } from "lucide-react";
 import { useRef } from "react";
 import { SeasonCard } from "./components/SeasonCard";
 import { SeasonForm } from "./components/SeasonForm";

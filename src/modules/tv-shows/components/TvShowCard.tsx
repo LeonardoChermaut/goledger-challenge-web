@@ -1,7 +1,7 @@
 import { CardActions } from "@/components/CardActions";
 import { cn } from "@/lib/lib";
 import { seasonGradients } from "@/shared/constants/constants";
-import { ITvShowData } from "@/shared/interfaces/interface";
+import { ITvShowData } from "@/shared/interfaces/interfaces";
 import { getAgeRecommendationColor, getGradient } from "@/shared/utils/utils";
 import { Heart, Tv } from "lucide-react";
 import { FunctionComponent } from "react";

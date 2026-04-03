@@ -1,7 +1,7 @@
 import { CardActions } from "@/components/CardActions";
 import { cn } from "@/lib/lib";
 import { episodeGradients } from "@/shared/constants/constants";
-import { IEpisodeData } from "@/shared/interfaces/interface";
+import { IEpisodeData } from "@/shared/interfaces/interfaces";
 import {
   getAgeRecommendationColor,
   getEpisodeDisplayDate,

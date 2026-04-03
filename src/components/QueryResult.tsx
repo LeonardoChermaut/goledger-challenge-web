@@ -1,6 +1,5 @@
-import { FunctionComponent, ReactNode } from "react";
 import { AlertTriangle, Inbox, Loader2 } from "lucide-react";
-import { LoadingSpinner } from "./LoadingSpinner";
+import { FunctionComponent, ReactNode } from "react";
 
 type QueryResultProps = {
   error: Error;

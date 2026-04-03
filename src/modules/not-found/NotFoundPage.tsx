@@ -1,6 +1,6 @@
+import { routes } from "@/shared/routes/routes";
 import { ArrowLeft, Tv } from "lucide-react";
 import { Link } from "react-router-dom";
-import { routes } from "@/shared/routes/routes";
 
 export const NotFoundPage = () => {
   return (

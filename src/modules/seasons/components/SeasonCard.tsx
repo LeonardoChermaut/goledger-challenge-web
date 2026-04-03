@@ -1,7 +1,7 @@
 import { CardActions } from "@/components/CardActions";
 import { cn } from "@/lib/lib";
 import { seasonGradients } from "@/shared/constants/constants";
-import { ISeasonData } from "@/shared/interfaces/interface";
+import { ISeasonData } from "@/shared/interfaces/interfaces";
 import {
   getAgeRecommendationColor,
   getGradient,
