@@ -7,7 +7,7 @@ import {
   getGradient,
   isValidAge,
 } from "@/shared/utils/utils";
-import { Calendar, Film, Heart, Layers } from "lucide-react";
+import { Film, Heart } from "lucide-react";
 import { FunctionComponent } from "react";
 
 type SeasonCardProps = {
@@ -35,9 +35,11 @@ export const SeasonCard: FunctionComponent<SeasonCardProps> = ({
 
   return (
     <div className="group glass-card overflow-hidden transition-all hover:border-primary/30 hover:shadow-lg hover:shadow-primary/5 animate-fade-in">
-      <div className={`relative h-36 bg-gradient-to-br ${gradient}`}>
+      <div
+        className={`relative h-36 bg-gradient-to-br ${gradient} cursor-pointer`}
+      >
         <div className="absolute inset-0 flex items-center justify-center">
-          <Layers className="h-12 w-12 text-primary/20" />
+          <Film className="h-12 w-12 text-primary/20" />
         </div>
         <div className="absolute right-3 top-3 flex items-center gap-2">
           {displayAge != null && (
@@ -53,40 +55,38 @@ export const SeasonCard: FunctionComponent<SeasonCardProps> = ({
           <button
             onClick={() => onToggleFavorite(season)}
             className={cn(
-              "rounded-full p-1 backdrop-blur-sm transition-colors",
+              "rounded-full p-1  transition-colors",
               isFavorite
-                ? "text-red-500 bg-background/60"
-                : "text-muted-foreground bg-background/60 hover:text-foreground",
+                ? "text-red-500"
+                : "text-muted-foreground hover:text-red-500",
             )}
             title={
               isFavorite ? "Remover dos favoritos" : "Adicionar aos favoritos"
             }
           >
             <Heart
-              className={cn("h-3.5 w-3.5", isFavorite && "fill-current")}
+              className={cn(
+                `h-3.5 w-3.5 ${isFavorite && "fill-current"} ${!isFavorite && "hover:fill-red-500"}`,
+              )}
             />
           </button>
-        </div>
-      </div>
-
-      <div className="p-4">
-        <div className="flex items-start justify-between gap-2">
-          <div className="min-w-0 flex-1">
-            <h3 className="font-heading text-sm font-semibold text-foreground group-hover:text-primary transition-colors line-clamp-1">
-              {tvShowTitle}
-            </h3>
-            <div className="mt-1 flex items-center gap-2 text-xs text-muted-foreground">
-              <Film className="h-3 w-3" />
-              <span>Temporada {season.number}</span>
-              <span>·</span>
-              <Calendar className="h-3 w-3" />
-              <span>{season.year}</span>
-            </div>
-          </div>
           <CardActions
             onEdit={() => onEdit(season)}
             onDelete={() => onDelete(season)}
           />
+        </div>
+      </div>
+
+      <div className="p-4">
+        <div className="min-w-0 flex-1">
+          <h3 className="font-heading text-sm font-semibold text-foreground group-hover:text-primary transition-colors line-clamp-1">
+            {tvShowTitle}
+          </h3>
+          <div className="mt-1 flex items-center gap-2 text-xs text-muted-foreground">
+            <span>Temporada {season.number}</span>
+            <span>·</span>
+            <span>{season.year}</span>
+          </div>
         </div>
       </div>
     </div>

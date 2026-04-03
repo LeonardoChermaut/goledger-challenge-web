@@ -2,7 +2,7 @@ import { CardActions } from "@/components/CardActions";
 import { watchlistGradients } from "@/shared/constants/constants";
 import { IWatchlistData } from "@/shared/interfaces/interface";
 import { getGradient } from "@/shared/utils/utils";
-import { BookmarkPlus, List, Tv } from "lucide-react";
+import { BookmarkPlus, Tv } from "lucide-react";
 import { FunctionComponent } from "react";
 
 type WatchlistCardProps = {
@@ -23,34 +23,39 @@ export const WatchlistCard: FunctionComponent<WatchlistCardProps> = ({
 
   return (
     <div className="group glass-card overflow-hidden transition-all hover:border-primary/30 hover:shadow-lg hover:shadow-primary/5 animate-fade-in">
-      <div className={`relative h-36 bg-gradient-to-br ${gradient}`}>
+      <div
+        className={`relative h-36 bg-gradient-to-br ${gradient} cursor-pointer`}
+      >
+        <div className="absolute top-4 left-4">
+          <h3 className="font-heading text-sm font-semibold text-foreground group-hover:text-primary transition-colors line-clamp-1">
+            {watchlist.title}
+          </h3>
+        </div>
         <div className="absolute inset-0 flex items-center justify-center">
-          <List className="h-12 w-12 text-primary/20" />
+          <BookmarkPlus className="h-12 w-12 text-primary/20" />
         </div>
         {showCount > 0 && (
-          <div className="absolute right-3 top-3">
+          <div className="absolute right-10 top-4">
             <span className="inline-flex items-center gap-1 rounded-full bg-background/80 px-2.5 py-0.5 text-xs font-medium text-foreground backdrop-blur-sm">
               <Tv className="h-3 w-3" />
               {showCount} {showCount === 1 ? "programa" : "programas"}
             </span>
           </div>
         )}
-      </div>
-
-      <div className="p-4">
-        <div className="flex items-start justify-between gap-2">
-          <h3 className="font-heading text-sm font-semibold text-foreground leading-tight group-hover:text-primary transition-colors flex-1 truncate">
-            {watchlist.title}
-          </h3>
-
+        <div className="absolute right-3 top-3">
           <CardActions
             onEdit={() => onEdit(watchlist)}
             onDelete={() => onDelete(watchlist)}
           />
         </div>
+      </div>
 
+      <div className="p-4">
         {watchlist.description && (
-          <p className="mt-2 line-clamp-2 text-xs text-muted-foreground/80 leading-relaxed italic">
+          <p className="text-sm font-semibold text-foreground">Descrição</p>
+        )}
+        {watchlist.description && (
+          <p className="mt-1 line-clamp-2 text-sm text-muted-foreground/80 leading-relaxed">
             "{watchlist.description}"
           </p>
         )}

@@ -9,7 +9,7 @@ import {
   isValidAge,
   isValidEpisodeRating,
 } from "@/shared/utils/utils";
-import { Calendar, Heart, PlayCircle, Star, Tag } from "lucide-react";
+import { Calendar, Heart, PlayCircle, Star } from "lucide-react";
 import { FunctionComponent } from "react";
 
 type EpisodeCardProps = {
@@ -43,38 +43,13 @@ export const EpisodeCard: FunctionComponent<EpisodeCardProps> = ({
 
   return (
     <div className="group glass-card overflow-hidden transition-all hover:border-primary/30 hover:shadow-lg hover:shadow-primary/5 animate-fade-in">
-      <div className={`relative h-36 bg-gradient-to-br ${gradient}`}>
+      <div
+        className={`relative h-36 bg-gradient-to-br ${gradient} cursor-pointer`}
+      >
         <div className="absolute inset-0 flex items-center justify-center">
-          <PlayCircle className="h-12 w-12 text-primary/20" />
+          <PlayCircle className="h-12 w-12 text-primary/20 mt-10" />
         </div>
-        <div className="absolute right-3 top-3 flex items-center gap-2">
-          {displayEpisodeRating != null && (
-            <div className="flex items-center gap-1 rounded-full bg-background/80 px-2 py-0.5 text-xs font-medium text-foreground backdrop-blur-sm">
-              <Star className="h-3 w-3 fill-current text-primary" />
-              {displayEpisodeRating}
-            </div>
-          )}
-          <button
-            onClick={() => onToggleFavorite(episode)}
-            className={cn(
-              "rounded-full p-1 backdrop-blur-sm transition-colors",
-              isFavorite
-                ? "text-red-500 bg-background/60"
-                : "text-muted-foreground bg-background/60 hover:text-foreground",
-            )}
-            title={
-              isFavorite ? "Remover dos favoritos" : "Adicionar aos favoritos"
-            }
-          >
-            <Heart
-              className={cn("h-3.5 w-3.5", isFavorite && "fill-current")}
-            />
-          </button>
-        </div>
-      </div>
-
-      <div className="p-4">
-        <div className="flex items-start justify-between gap-2">
+        <div className="p-4">
           <div className="min-w-0 flex-1">
             <h3 className="font-heading text-sm font-semibold text-foreground group-hover:text-primary transition-colors line-clamp-1">
               {episode.title}
@@ -85,13 +60,46 @@ export const EpisodeCard: FunctionComponent<EpisodeCardProps> = ({
               <span>E{episode.episodeNumber}</span>
             </div>
           </div>
+        </div>
+        <div className="absolute right-3 top-3 flex items-center gap-2">
+          {displayEpisodeRating != null && (
+            <div className="flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium text-foreground backdrop-blur-sm">
+              <Star className="h-3 w-3 fill-current text-primary" />
+              {displayEpisodeRating < Number(`${displayEpisodeRating}.1`)
+                ? `${displayEpisodeRating}.0`
+                : displayEpisodeRating}
+            </div>
+          )}
+          <button
+            onClick={() => onToggleFavorite(episode)}
+            className={cn(
+              "rounded-full p-1 backdrop-blur-sm transition-colors",
+              isFavorite
+                ? "text-red-500"
+                : "text-muted-foreground hover:text-red-500",
+            )}
+            title={
+              isFavorite ? "Remover dos favoritos" : "Adicionar aos favoritos"
+            }
+          >
+            <Heart
+              className={cn(
+                `h-3.5 w-3.5 ${isFavorite && "fill-current"} ${!isFavorite && "hover:fill-red-500"}`,
+              )}
+            />
+          </button>
           <CardActions
             onEdit={() => onEdit(episode)}
             onDelete={() => onDelete(episode)}
           />
         </div>
+      </div>
 
-        <p className="mt-2 line-clamp-2 text-xs text-muted-foreground/80 leading-relaxed">
+      <div className="p-4">
+        <div className="min-w-0 flex-1"></div>
+
+        <p className="text-sm font-semibold text-foreground">Descrição</p>
+        <p className="mt-1 line-clamp-2 text-sm text-muted-foreground/80 leading-relaxed">
           {episode.description}
         </p>
 
@@ -102,7 +110,6 @@ export const EpisodeCard: FunctionComponent<EpisodeCardProps> = ({
           </div>
           {displayTvShowAge != null && (
             <div className="flex items-center gap-1.5">
-              <Tag className="h-3.5 w-3.5" />
               <span
                 className={cn(
                   "rounded px-1.5 py-0.5 text-xs font-medium",
