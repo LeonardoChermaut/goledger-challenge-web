@@ -15,7 +15,7 @@ import {
   IWatchlistData,
 } from "@/shared/interfaces/interface";
 import { sortByFavorite } from "@/shared/utils/utils";
-import { Plus } from "lucide-react";
+import { Plus, Tv } from "lucide-react";
 import { useRef } from "react";
 import { TvShowCard } from "./components/TvShowCard";
 import { TvShowForm } from "./components/TvShowForm";
@@ -78,7 +78,8 @@ export const TvShowsPage = () => {
   return (
     <PageShell
       title="Programas de TV"
-      description="Navegue e gerencie o catálogo de programas de TV"
+      description="Navegue e gerencie o catalogo de programas de TV"
+      icon={Tv}
       action={
         <button
           onClick={handler.openCreate}

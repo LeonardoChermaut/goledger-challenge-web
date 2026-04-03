@@ -15,7 +15,7 @@ import {
   IWatchlistPayload,
 } from "@/shared/interfaces/interface";
 import { findAssetByKey } from "@/shared/utils/utils";
-import { Plus } from "lucide-react";
+import { Plus, BookmarkPlus } from "lucide-react";
 import { useRef } from "react";
 import { WatchlistCard } from "./components/WatchlistCard";
 import { WatchlistForm } from "./components/WatchlistForm";
@@ -82,6 +82,7 @@ export const WatchlistsPage = () => {
     <PageShell
       title="Minhas Listas"
       description="Crie e gerencie suas listas de favoritos"
+      icon={BookmarkPlus}
       action={
         <button
           onClick={handler.openCreate}

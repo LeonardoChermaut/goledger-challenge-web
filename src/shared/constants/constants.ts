@@ -13,6 +13,42 @@ import {
   Zap,
 } from "lucide-react";
 
+export const seasonGradients = [
+  "from-blue-600/20 via-indigo-600/10 to-transparent",
+  "from-cyan-600/20 via-blue-600/10 to-transparent",
+  "from-violet-600/20 via-purple-600/10 to-transparent",
+  "from-sky-600/20 via-blue-600/10 to-transparent",
+  "from-indigo-600/20 via-violet-600/10 to-transparent",
+  "from-teal-600/20 via-cyan-600/10 to-transparent",
+] as const;
+
+export const episodeGradients = [
+  "from-emerald-600/20 via-teal-600/10 to-transparent",
+  "from-green-600/20 via-emerald-600/10 to-transparent",
+  "from-teal-600/20 via-green-600/10 to-transparent",
+  "from-cyan-600/20 via-emerald-600/10 to-transparent",
+  "from-lime-600/20 via-green-600/10 to-transparent",
+  "from-sky-600/20 via-teal-600/10 to-transparent",
+] as const;
+
+export const tvShowGradients = [
+  "from-amber-600/20 via-orange-600/10 to-transparent",
+  "from-blue-600/20 via-cyan-600/10 to-transparent",
+  "from-emerald-600/20 via-teal-600/10 to-transparent",
+  "from-purple-600/20 via-pink-600/10 to-transparent",
+  "from-red-600/20 via-orange-600/10 to-transparent",
+  "from-indigo-600/20 via-blue-600/10 to-transparent",
+] as const;
+
+export const watchlistGradients = [
+  "from-purple-600/20 via-pink-600/10 to-transparent",
+  "from-violet-600/20 via-purple-600/10 to-transparent",
+  "from-fuchsia-600/20 via-purple-600/10 to-transparent",
+  "from-indigo-600/20 via-purple-600/10 to-transparent",
+  "from-pink-600/20 via-rose-600/10 to-transparent",
+  "from-blue-600/20 via-purple-600/10 to-transparent",
+] as const;
+
 export const navigationItems = [
   { path: routes.route.home, label: "Home", icon: Home },
   { path: routes.route.tvshows, label: "Programas de TV", icon: Tv },

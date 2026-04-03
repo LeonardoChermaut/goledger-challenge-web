@@ -23,7 +23,7 @@ import {
   getTvShowTitle,
   sortByFavorite,
 } from "@/shared/utils/utils";
-import { Plus } from "lucide-react";
+import { Plus, Film } from "lucide-react";
 import { useRef } from "react";
 import { SeasonCard } from "./components/SeasonCard";
 import { SeasonForm } from "./components/SeasonForm";
@@ -100,6 +100,7 @@ export const SeasonsPage = () => {
     <PageShell
       title="Temporadas"
       description="Gerencie as temporadas dos programas de TV"
+      icon={Film}
       action={
         <button
           onClick={handler.openCreate}

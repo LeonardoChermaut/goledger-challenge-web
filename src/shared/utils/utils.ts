@@ -15,6 +15,18 @@ export const isValidRating = (value: number): boolean => {
   return !decimalPart || decimalPart.length === 1;
 };
 
+export const getGradient = (
+  gradients: readonly string[],
+  title: string,
+): string => {
+  let hash = 0;
+  for (let i = 0; i < title.length; i++) {
+    hash = title.charCodeAt(i) + ((hash << 5) - hash);
+  }
+
+  return gradients[Math.abs(hash) % gradients.length];
+};
+
 export const isValidAge = (age: number): boolean => age >= 0 && age <= 18;
 
 export const isValidEpisodeRating = (rating: number): boolean =>

@@ -25,7 +25,7 @@ import {
   getTvShowTitleFromEpisode,
   sortByFavorite,
 } from "@/shared/utils/utils";
-import { Plus } from "lucide-react";
+import { Plus, PlayCircle } from "lucide-react";
 import { useRef } from "react";
 import { EpisodeCard } from "./components/EpisodeCard";
 import { EpisodeForm } from "./components/EpisodeForm";
@@ -140,6 +140,7 @@ export const EpisodesPage = () => {
     <PageShell
       title="Episodios"
       description="Navegue e gerencie os episodios"
+      icon={PlayCircle}
       action={
         <button
           onClick={handler.openCreate}
