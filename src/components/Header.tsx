@@ -1,12 +1,7 @@
-import { BookmarkPlus, Film, PlayCircle, Tv } from "lucide-react";
+import { navigationItems } from "@/shared/constants/constants";
+import { routes } from "@/shared/routes/routes";
+import { Tv } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
-
-const navigationItems = [
-  { path: "/", label: "Programas de TV", icon: Tv },
-  { path: "/seasons", label: "Temporadas", icon: Film },
-  { path: "/episodes", label: "Episódios", icon: PlayCircle },
-  { path: "/watchlists", label: "Minhas Listas", icon: BookmarkPlus },
-] as const;
 
 export const Header = () => {
   const location = useLocation();
@@ -14,7 +9,7 @@ export const Header = () => {
   return (
     <header className="sticky top-0 z-50 border-b border-border bg-background/90 backdrop-blur-md">
       <div className="container flex h-16 items-center justify-between">
-        <Link to="/" className="flex items-center gap-2">
+        <Link to={routes.route.home} className="flex items-center gap-2">
           <Tv className="h-6 w-6 text-primary" />
           <span className="font-heading text-xl font-bold text-foreground">
             GoShow<span className="text-primary">DB</span>

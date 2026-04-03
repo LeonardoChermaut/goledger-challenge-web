@@ -5,6 +5,7 @@ import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { Footer } from "./components/Footer";
 import { Header } from "./components/Header";
 import { EpisodesPage } from "./modules/episodes/EpisodesPage";
+import { HomePage } from "./modules/home/HomePage";
 import { NotFoundPage } from "./modules/not-found/NotFoundPage";
 
 import { SeasonsPage } from "./modules/seasons/SeasonsPage";
@@ -30,7 +31,8 @@ export const App = () => (
           <Header />
           <main className="flex-grow">
             <Routes>
-              <Route path={routes.route.home} element={<TvShowsPage />} />
+              <Route path={routes.route.home} element={<HomePage />} />
+              <Route path={routes.route.tvshows} element={<TvShowsPage />} />
               <Route path={routes.route.seasons} element={<SeasonsPage />} />
               <Route path={routes.route.episodes} element={<EpisodesPage />} />
               <Route

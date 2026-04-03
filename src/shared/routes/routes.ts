@@ -1,6 +1,7 @@
 export const routes = {
   route: {
     home: "/",
+    tvshows: "/tvshows",
     seasons: "/seasons",
     episodes: "/episodes",
     watchlists: "/watchlists",

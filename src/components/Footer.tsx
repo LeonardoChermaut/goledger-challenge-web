@@ -1,10 +1,12 @@
-import { BookmarkPlus, FilmIcon, Github, PlayCircle, Tv } from "lucide-react";
+import { BookmarkPlus, Film, Github, PlayCircle, Tv } from "lucide-react";
 import { Link } from "react-router-dom";
+import { routes } from "@/shared/routes/routes";
+
 const navItems = [
-  { path: "/", label: "Programas de TV", icon: Tv },
-  { path: "/seasons", label: "Temporadas", icon: FilmIcon },
-  { path: "/episodes", label: "Episódios", icon: PlayCircle },
-  { path: "/watchlists", label: "Minhas Listas", icon: BookmarkPlus },
+  { path: routes.route.tvshows, label: "Programas de TV", icon: Tv },
+  { path: routes.route.seasons, label: "Temporadas", icon: Film },
+  { path: routes.route.episodes, label: "Episodios", icon: PlayCircle },
+  { path: routes.route.watchlists, label: "Minhas Listas", icon: BookmarkPlus },
 ] as const;
 
 export const Footer = () => {
@@ -13,7 +15,7 @@ export const Footer = () => {
       <div className="container py-12">
         <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
           <div className="flex flex-col gap-4">
-            <Link to="/" className="flex items-center gap-2">
+            <Link to={routes.route.home} className="flex items-center gap-2">
               <Tv className="h-6 w-6 text-primary" />
               <span className="font-heading text-xl font-bold text-foreground">
                 GoShow<span className="text-primary">DB</span>
