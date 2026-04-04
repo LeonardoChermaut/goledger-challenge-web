@@ -61,7 +61,21 @@ export const EpisodesPage = () => {
   const { searchTerm, filteredData, handleSearchChange } =
     useAssetSearch<IEpisodeData>({
       data: episodes,
-      searchKey: "title",
+      customFilter: (item, term) => {
+        const season = findAssetByKey(seasons, item.season["@key"]);
+        if (!season) {
+          return item.title.toLowerCase().includes(term);
+        }
+
+        const tvShow = findAssetByKey(tvShows, season.tvShow["@key"]);
+        const tvShowTitle = tvShow?.title ?? "";
+
+        return (
+          item.title.toLowerCase().includes(term) ||
+          tvShowTitle.toLowerCase().includes(term) ||
+          String(season.number).includes(term)
+        );
+      },
       onFilterChange: resetPagination,
     });
 
