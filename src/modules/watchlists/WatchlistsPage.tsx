@@ -12,7 +12,6 @@ import {
   ITvShowData,
   IWatchlistData,
   IWatchlistFormData,
-  IWatchlistPayload,
 } from "@/shared/interfaces/interfaces";
 import { findAssetByKey } from "@/shared/utils/utils";
 import { BookmarkPlus, Plus } from "lucide-react";
@@ -31,11 +30,11 @@ export const WatchlistsPage = () => {
     submit,
     isSubmitting,
     deleteAsset: deleteWatchlist,
-  } = useAssetManager<IWatchlistData, IWatchlistPayload>({
+  } = useAssetManager<IWatchlistData>({
     assetType: "watchlist",
   });
 
-  const handler = useHandlers<IWatchlistData, IWatchlistPayload>();
+  const handler = useHandlers<IWatchlistData>();
 
   const {
     currentPage,
@@ -56,7 +55,8 @@ export const WatchlistsPage = () => {
     findAssetByKey(tvShows, key)?.title ?? key;
 
   const handleFormSubmit = async (formData: IWatchlistFormData) => {
-    const payload: IWatchlistPayload = {
+    const payload: Omit<IWatchlistData, "@key"> = {
+      "@assetType": "watchlist",
       title: formData.title,
       description: formData.description,
       tvShows: formData.tvShows.map((key) => ({

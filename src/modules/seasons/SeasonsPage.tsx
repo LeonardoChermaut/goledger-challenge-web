@@ -13,7 +13,6 @@ import { usePagination } from "@/hooks/use-pagination";
 import {
   ISeasonData,
   ISeasonFormData,
-  ISeasonPayload,
   ITvShowData,
   IWatchlistData,
 } from "@/shared/interfaces/interfaces";
@@ -42,11 +41,11 @@ export const SeasonsPage = () => {
     submit,
     isSubmitting,
     deleteAsset: deleteSeason,
-  } = useAssetManager<ISeasonData, ISeasonPayload>({ assetType: "seasons" });
+  } = useAssetManager<ISeasonData>({ assetType: "seasons" });
 
   const { isFavorite, isPending, toggleFavorite } = useFavorite({ watchlists });
 
-  const handler = useHandlers<ISeasonData, ISeasonPayload>();
+  const handler = useHandlers<ISeasonData>();
 
   const { resetPagination } = usePagination({ data: seasons });
 
@@ -77,7 +76,9 @@ export const SeasonsPage = () => {
   });
 
   const handleFormSubmit = async (formData: ISeasonFormData) => {
-    const payload: ISeasonPayload = {
+    const payload: Omit<ISeasonData, "@key"> = {
+      ...formData,
+      "@assetType": "seasons",
       tvShow: { "@assetType": "tvShows", "@key": formData.tvShow },
       number: formData.number,
       year: formData.year,

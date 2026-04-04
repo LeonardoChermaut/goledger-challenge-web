@@ -1,8 +1,25 @@
 import { useState } from "react";
 import { useDisclosure } from "./use-disclosure";
 
-// eslint-disable-nextline @typescript-eslint/no-unused-vars
-export const useHandlers = <TDisplay, _TPayload = TDisplay>() => {
+interface IDisclosure {
+  isOpen: boolean;
+  open: () => void;
+  close: () => void;
+}
+
+interface IUseHandlers<TDisplay> {
+  editItem: TDisplay | null;
+  deleteItem: TDisplay | null;
+
+  formDisclosure: IDisclosure;
+  deleteDisclosure: IDisclosure;
+
+  openCreate: () => void;
+  openEdit: (item: TDisplay) => void;
+  openDelete: (item: TDisplay) => void;
+}
+
+export const useHandlers = <TDisplay>(): IUseHandlers<TDisplay> => {
   const [editItem, setEditItem] = useState<TDisplay | null>(null);
   const [deleteItem, setDeleteItem] = useState<TDisplay | null>(null);
 
@@ -42,5 +59,5 @@ export const useHandlers = <TDisplay, _TPayload = TDisplay>() => {
     openCreate,
     openEdit,
     openDelete,
-  } as const;
+  };
 };

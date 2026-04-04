@@ -31,11 +31,11 @@ export const TvShowsPage = () => {
     submit,
     isSubmitting,
     deleteAsset: deleteTvShow,
-  } = useAssetManager<ITvShowData, ITvShowFormData>({ assetType: "tvShows" });
+  } = useAssetManager<ITvShowData>({ assetType: "tvShows" });
 
   const { isFavorite, isPending, toggleFavorite } = useFavorite({ watchlists });
 
-  const handler = useHandlers<ITvShowData, ITvShowFormData>();
+  const handler = useHandlers<ITvShowData>();
 
   const { resetPagination } = usePagination({ data: tvShows });
 
@@ -58,7 +58,14 @@ export const TvShowsPage = () => {
   } = usePagination({ data: sortedData });
 
   const handleFormSubmit = async (formData: ITvShowFormData) => {
-    await submit(handler.editItem, formData);
+    const payload: Omit<ITvShowData, "@key"> = {
+      "@assetType": "tvShows",
+      title: formData.title,
+      description: formData.description,
+      ...formData,
+    };
+
+    await submit(handler.editItem, payload);
     handler.formDisclosure.close();
   };
 

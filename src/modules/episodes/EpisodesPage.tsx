@@ -13,7 +13,6 @@ import { usePagination } from "@/hooks/use-pagination";
 import {
   IEpisodeData,
   IEpisodeFormData,
-  IEpisodePayload,
   ISeasonData,
   ITvShowData,
   IWatchlistData,
@@ -47,7 +46,7 @@ export const EpisodesPage = () => {
     submit,
     isSubmitting,
     deleteAsset: deleteEpisode,
-  } = useAssetManager<IEpisodeData, IEpisodePayload>({ assetType: "episodes" });
+  } = useAssetManager<IEpisodeData>({ assetType: "episodes" });
 
   const {
     isFavorite: isWatchlistFavorite,
@@ -55,7 +54,7 @@ export const EpisodesPage = () => {
     toggleFavorite,
   } = useFavorite({ watchlists });
 
-  const handler = useHandlers<IEpisodeData, IEpisodePayload>();
+  const handler = useHandlers<IEpisodeData>();
 
   const { resetPagination } = usePagination({ data: episodes });
 
@@ -68,13 +67,19 @@ export const EpisodesPage = () => {
 
   const getEpisodeTvShowKey = (episode: IEpisodeData): string | null => {
     const season = findAssetByKey(seasons, episode.season["@key"]);
-    if (!season) return null;
+    if (!season) {
+      return null;
+    }
+
     return season.tvShow["@key"];
   };
 
   const isEpisodeFavorite = (episode: IEpisodeData): boolean => {
     const tvShowKey = getEpisodeTvShowKey(episode);
-    if (!tvShowKey) return false;
+    if (!tvShowKey) {
+      return false;
+    }
+
     return isWatchlistFavorite(tvShowKey);
   };
 
@@ -108,7 +113,9 @@ export const EpisodesPage = () => {
   };
 
   const handleFormSubmit = async (formData: IEpisodeFormData) => {
-    const payload: IEpisodePayload = {
+    const payload: Omit<IEpisodeData, "@key"> = {
+      "@assetType": "episodes",
+      ...formData,
       season: { "@assetType": "seasons", "@key": formData.season },
       episodeNumber: formData.episodeNumber,
       title: formData.title,

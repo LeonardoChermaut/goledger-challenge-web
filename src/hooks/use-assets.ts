@@ -32,12 +32,14 @@ const useAssets = <T>(assetType: string, enabled = true) =>
     enabled,
   });
 
-const useCreateAsset = <T>(assetType: string) => {
+const useCreateAsset = <TDisplay extends { "@key": string }>(
+  assetType: string,
+) => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (asset: Record<string, unknown>) =>
-      api.post<T, unknown>(routes.api.methods.createAsset, {
+    mutationFn: (asset: Omit<TDisplay, "@key">) =>
+      api.post(routes.api.methods.createAsset, {
         asset: [{ "@assetType": assetType, ...asset }],
       }),
     onSuccess: () => {
@@ -48,11 +50,13 @@ const useCreateAsset = <T>(assetType: string) => {
   });
 };
 
-const useUpdateAsset = <T>(assetType: string) => {
+const useUpdateAsset = <TDisplay extends { "@key": string }>(
+  assetType: string,
+) => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (data: T & { "@key": string }) =>
+    mutationFn: (data: TDisplay) =>
       api.put(routes.api.methods.updateAsset, {
         update: { "@assetType": assetType, ...data },
       }),
@@ -83,42 +87,40 @@ const useDeleteAsset = (assetType: string) => {
   });
 };
 
-interface IAssetManagerReturn<TDisplay, TPayload> {
+interface IAssetManagerReturn<TDisplay extends { "@key": string }> {
   isSubmitting: boolean;
-  assets: UseQueryResult<TDisplay[]>;
-  createAsset: ReturnType<typeof useCreateAsset<TPayload>>;
-  updateAsset: ReturnType<typeof useUpdateAsset<TPayload>>;
   deleteAsset: ReturnType<typeof useDeleteAsset>;
+  assets: UseQueryResult<TDisplay[]>;
+  createAsset: ReturnType<typeof useCreateAsset<TDisplay>>;
+  updateAsset: ReturnType<typeof useUpdateAsset<TDisplay>>;
   submit: (
     originalItem: TDisplay | null,
-    formData: TPayload,
+    formData: Omit<TDisplay, "@key">,
   ) => Promise<unknown>;
 }
 
-export const useAssetManager = <
-  TDisplay extends { "@key": string },
-  TPayload extends object = TDisplay,
->({
+export const useAssetManager = <TDisplay extends { "@key": string }>({
   assetType,
 }: {
   assetType: string;
-}): IAssetManagerReturn<TDisplay, TPayload> => {
+}): IAssetManagerReturn<TDisplay> => {
   const assets = useAssets<TDisplay>(assetType);
-  const createAsset = useCreateAsset<TPayload>(assetType);
-  const updateAsset = useUpdateAsset<TPayload>(assetType);
   const deleteAsset = useDeleteAsset(assetType);
+  const createAsset = useCreateAsset<TDisplay>(assetType);
+  const updateAsset = useUpdateAsset<TDisplay>(assetType);
 
-  const submit = async (originalItem: TDisplay | null, formData: TPayload) => {
+  const submit = async (
+    originalItem: TDisplay | null,
+    formData: Omit<TDisplay, "@key">,
+  ) => {
     if (!originalItem) {
-      return createAsset.mutateAsync(
-        formData as unknown as Record<string, unknown>,
-      );
+      return createAsset.mutateAsync(formData);
     }
 
     return updateAsset.mutateAsync({
-      "@key": originalItem["@key"],
       ...formData,
-    } as unknown as TPayload & { "@key": string });
+      "@key": originalItem["@key"],
+    } as TDisplay);
   };
 
   return {
