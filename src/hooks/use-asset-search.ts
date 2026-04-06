@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 
 type AssetSearchProps<T> = {
   data: T[] | undefined;
@@ -15,10 +15,13 @@ export const useAssetSearch = <T>({
 }: AssetSearchProps<T>) => {
   const [searchTerm, setSearchTerm] = useState<string>("");
 
-  const handleSearchChange = (value: string) => {
-    setSearchTerm(value);
-    onFilterChange?.(value);
-  };
+  const handleSearchChange = useCallback(
+    (value: string) => {
+      setSearchTerm(value);
+      onFilterChange?.(value);
+    },
+    [onFilterChange],
+  );
 
   const filteredData = useMemo(() => {
     if (!data) {

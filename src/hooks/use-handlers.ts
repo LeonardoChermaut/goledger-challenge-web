@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { useDisclosure } from "./use-disclosure";
 
 interface IDisclosure {
@@ -26,30 +26,36 @@ export const useHandlers = <TDisplay>(): IUseHandlers<TDisplay> => {
   const formDisclosure = useDisclosure();
   const deleteDisclosure = useDisclosure();
 
-  const openCreate = () => {
+  const openCreate = useCallback(() => {
     setEditItem(null);
     formDisclosure.open();
-  };
+  }, [formDisclosure]);
 
-  const openEdit = (item: TDisplay) => {
-    setEditItem(item);
-    formDisclosure.open();
-  };
+  const openEdit = useCallback(
+    (item: TDisplay) => {
+      setEditItem(item);
+      formDisclosure.open();
+    },
+    [formDisclosure],
+  );
 
-  const openDelete = (item: TDisplay) => {
-    setDeleteItem(item);
-    deleteDisclosure.open();
-  };
+  const openDelete = useCallback(
+    (item: TDisplay) => {
+      setDeleteItem(item);
+      deleteDisclosure.open();
+    },
+    [deleteDisclosure],
+  );
 
-  const closeForm = () => {
+  const closeForm = useCallback(() => {
     formDisclosure.close();
     setEditItem(null);
-  };
+  }, [formDisclosure]);
 
-  const closeDelete = () => {
+  const closeDelete = useCallback(() => {
     deleteDisclosure.close();
     setDeleteItem(null);
-  };
+  }, [deleteDisclosure]);
 
   return {
     editItem,
