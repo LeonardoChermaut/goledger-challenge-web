@@ -22,16 +22,13 @@ import { TvShowForm } from "./components/TvShowForm";
 export const TvShowsPage = () => {
   const {
     assets: { data: tvShows, isLoading, error, refetch },
-  } = useAssetManager<ITvShowData>({ assetType: "tvShows" });
-  const {
-    assets: { data: watchlists },
-  } = useAssetManager<IWatchlistData>({ assetType: "watchlist" });
-
-  const {
     submit,
     isSubmitting,
     deleteAsset: deleteTvShow,
   } = useAssetManager<ITvShowData>({ assetType: "tvShows" });
+  const {
+    assets: { data: watchlists },
+  } = useAssetManager<IWatchlistData>({ assetType: "watchlist" });
 
   const { isFavorite, isPending, toggleFavorite } = useFavorite({ watchlists });
 

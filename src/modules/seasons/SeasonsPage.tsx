@@ -29,6 +29,9 @@ import { SeasonForm } from "./components/SeasonForm";
 export const SeasonsPage = () => {
   const {
     assets: { data: seasons, isLoading, error, refetch },
+    submit,
+    isSubmitting,
+    deleteAsset: deleteSeason,
   } = useAssetManager<ISeasonData>({ assetType: "seasons" });
   const {
     assets: { data: tvShows },
@@ -36,12 +39,6 @@ export const SeasonsPage = () => {
   const {
     assets: { data: watchlists },
   } = useAssetManager<IWatchlistData>({ assetType: "watchlist" });
-
-  const {
-    submit,
-    isSubmitting,
-    deleteAsset: deleteSeason,
-  } = useAssetManager<ISeasonData>({ assetType: "seasons" });
 
   const { isFavorite, isPending, toggleFavorite } = useFavorite({ watchlists });
 
@@ -89,7 +86,10 @@ export const SeasonsPage = () => {
   };
 
   const handleDeleteConfirm = async () => {
-    if (!handler.deleteItem) return;
+    if (!handler.deleteItem) {
+      return;
+    }
+
     await deleteSeason.mutateAsync(handler.deleteItem["@key"]);
     handler.deleteDisclosure.close();
   };

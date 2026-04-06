@@ -21,18 +21,13 @@ import { WatchlistForm } from "./components/WatchlistForm";
 export const WatchlistsPage = () => {
   const {
     assets: { data: watchlists, isLoading, error, refetch },
+    submit,
+    isSubmitting,
+    deleteAsset: deleteWatchlist,
   } = useAssetManager<IWatchlistData>({ assetType: "watchlist" });
   const {
     assets: { data: tvShows },
   } = useAssetManager<ITvShowData>({ assetType: "tvShows" });
-
-  const {
-    submit,
-    isSubmitting,
-    deleteAsset: deleteWatchlist,
-  } = useAssetManager<IWatchlistData>({
-    assetType: "watchlist",
-  });
 
   const handler = useHandlers<IWatchlistData>();
 
@@ -70,7 +65,10 @@ export const WatchlistsPage = () => {
   };
 
   const handleDeleteConfirm = async () => {
-    if (!handler.deleteItem) return;
+    if (!handler.deleteItem) {
+      return;
+    }
+
     await deleteWatchlist.mutateAsync(handler.deleteItem["@key"]);
     handler.deleteDisclosure.close();
   };

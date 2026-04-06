@@ -31,6 +31,9 @@ import { EpisodeForm } from "./components/EpisodeForm";
 export const EpisodesPage = () => {
   const {
     assets: { data: episodes, isLoading, error, refetch },
+    submit,
+    isSubmitting,
+    deleteAsset: deleteEpisode,
   } = useAssetManager<IEpisodeData>({ assetType: "episodes" });
   const {
     assets: { data: seasons },
@@ -41,12 +44,6 @@ export const EpisodesPage = () => {
   const {
     assets: { data: watchlists },
   } = useAssetManager<IWatchlistData>({ assetType: "watchlist" });
-
-  const {
-    submit,
-    isSubmitting,
-    deleteAsset: deleteEpisode,
-  } = useAssetManager<IEpisodeData>({ assetType: "episodes" });
 
   const {
     isFavorite: isWatchlistFavorite,
