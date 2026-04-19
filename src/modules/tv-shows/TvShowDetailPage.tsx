@@ -6,18 +6,17 @@ import { useAssetBySlug, useAssetManager } from "@/hooks/use-assets";
 import { useFavorite } from "@/hooks/use-favorite";
 import { useHandlers } from "@/hooks/use-handlers";
 import { cn } from "@/lib/lib";
-import { seasonGradients, tvShowGradients } from "@/shared/constants/constants";
+import { tvShowGradients } from "@/shared/constants/constants";
 import {
-  ISeasonData,
   ITvShowData,
   ITvShowFormData,
-  IWatchlistData,
 } from "@/shared/interfaces/interfaces";
 import { routes } from "@/shared/routes/routes";
 import { getAgeRecommendationColor, getGradient } from "@/shared/utils/utils";
-import { Calendar, Film, Tv } from "lucide-react";
+import { Film, Tv } from "lucide-react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { TvShowForm } from "./components/TvShowForm";
+import { SeasonGridItem } from "./components/SeasonGridItem";
 
 export const TvShowDetailPage = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -28,29 +27,29 @@ export const TvShowDetailPage = () => {
     isLoading,
     error,
     refetch,
-  } = useAssetBySlug<ITvShowData>({ assetType: "tvShows", slug });
+  } = useAssetBySlug({ assetType: "tvShows", slug });
 
   const {
     assets: { data: seasons },
-  } = useAssetManager<ISeasonData>({ assetType: "seasons" });
+  } = useAssetManager("seasons");
 
   const {
     assets: { data: watchlists },
-  } = useAssetManager<IWatchlistData>({ assetType: "watchlist" });
+  } = useAssetManager("watchlist");
 
   const {
     submit,
     isSubmitting,
     deleteAsset: deleteTvShow,
-  } = useAssetManager<ITvShowData>({ assetType: "tvShows" });
+  } = useAssetManager("tvShows");
 
   const { isFavorite, isPending, toggleFavorite } = useFavorite({ watchlists });
 
   const handler = useHandlers<ITvShowData>();
 
-  const relatedSeasons = seasons?.filter(
-    (s) => show && s.tvShow["@key"] === show["@key"],
-  );
+  const relatedSeasons = seasons
+    ?.filter((season) => show && season.tvShow["@key"] === show["@key"])
+    .sort((a, b) => Number(a.number) - Number(b.number));
 
   const handleFormSubmit = async (formData: ITvShowFormData) => {
     const payload: Omit<ITvShowData, "@key"> = {
@@ -59,6 +58,7 @@ export const TvShowDetailPage = () => {
       description: formData.description,
       ...formData,
     };
+
     await submit(handler.editItem, payload);
     handler.formDisclosure.close();
   };
@@ -165,32 +165,13 @@ export const TvShowDetailPage = () => {
               </div>
             ) : (
               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                {relatedSeasons.map((season) => {
-                  const sg = getGradient(seasonGradients, show.title);
-                  return (
-                    <Link
-                      key={season["@key"]}
-                      to={routes.route.seasonDetail(show.title, season.number)}
-                      className="group/card glass-card overflow-hidden transition-all hover:border-primary/30 hover:shadow-lg hover:shadow-primary/5"
-                    >
-                      <div
-                        className={`relative h-24 bg-gradient-to-br ${sg} flex items-center justify-center`}
-                      >
-                        <div className="absolute inset-0 bg-black/10 opacity-0 group-hover/card:opacity-100 transition-opacity" />
-                        <Film className="h-8 w-8 text-primary/20" />
-                      </div>
-                      <div className="p-4">
-                        <p className="font-heading text-sm font-semibold text-foreground group-hover/card:text-primary transition-colors">
-                          Temporada {season.number}
-                        </p>
-                        <div className="mt-1.5 flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground/60">
-                          <Calendar className="h-3 w-3" />
-                          <span>{season.year}</span>
-                        </div>
-                      </div>
-                    </Link>
-                  );
-                })}
+                {relatedSeasons.map((season) => (
+                  <SeasonGridItem
+                    key={season["@key"]}
+                    season={season}
+                    showTitle={show.title}
+                  />
+                ))}
               </div>
             )}
           </div>

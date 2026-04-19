@@ -12,7 +12,6 @@ import { usePagination } from "@/hooks/use-pagination";
 import {
   ITvShowData,
   ITvShowFormData,
-  IWatchlistData,
 } from "@/shared/interfaces/interfaces";
 import { sortByFavorite } from "@/shared/utils/utils";
 import { Plus, Tv } from "lucide-react";
@@ -25,10 +24,11 @@ export const TvShowsPage = () => {
     submit,
     isSubmitting,
     deleteAsset: deleteTvShow,
-  } = useAssetManager<ITvShowData>({ assetType: "tvShows" });
+  } = useAssetManager("tvShows");
+
   const {
     assets: { data: watchlists },
-  } = useAssetManager<IWatchlistData>({ assetType: "watchlist" });
+  } = useAssetManager("watchlist");
 
   const { isFavorite, isPending, toggleFavorite } = useFavorite({ watchlists });
 
@@ -37,7 +37,7 @@ export const TvShowsPage = () => {
   const { resetPagination } = usePagination({ data: tvShows });
 
   const { searchTerm, filteredData, handleSearchChange } =
-    useAssetSearch<ITvShowData>({
+    useAssetSearch({
       data: tvShows,
       onFilterChange: resetPagination,
     });
@@ -54,14 +54,12 @@ export const TvShowsPage = () => {
   } = usePagination({ data: sortedTvShows });
 
   const handleFormSubmit = async (formData: ITvShowFormData) => {
-    const payloadIndex: Omit<ITvShowData, "@key"> = {
+    const payload: Omit<ITvShowData, "@key"> = {
       "@assetType": "tvShows",
-      title: formData.title,
-      description: formData.description,
       ...formData,
     };
 
-    await submit(handler.editItem, payloadIndex);
+    await submit(handler.editItem, payload);
     handler.formDisclosure.close();
   };
 

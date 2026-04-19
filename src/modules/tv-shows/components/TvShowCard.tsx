@@ -45,7 +45,7 @@ export const TvShowCard = ({
         </Link>
         <div
           className="absolute right-3 top-3 flex items-center gap-2"
-          onClick={(e) => e.preventDefault()}
+          onClick={(event) => event.preventDefault()}
         >
           <span
             className={cn(
@@ -56,8 +56,8 @@ export const TvShowCard = ({
             {show.recommendedAge}+
           </span>
           <button
-            onClick={(e) => {
-              e.stopPropagation();
+            onClick={(event) => {
+              event.stopPropagation();
               onToggleFavorite();
             }}
             disabled={isFavoritePending}
@@ -81,7 +81,7 @@ export const TvShowCard = ({
             )}
           </button>
           <div
-            onClick={(e) => e.stopPropagation()}
+            onClick={(event) => event.stopPropagation()}
             className="rounded-full p-0.5"
           >
             <CardActions

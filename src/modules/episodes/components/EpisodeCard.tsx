@@ -82,7 +82,7 @@ export const EpisodeCard = ({
         </Link>
         <div
           className="absolute right-3 top-3 flex items-center gap-2"
-          onClick={(e) => e.preventDefault()}
+          onClick={(event) => event.preventDefault()}
         >
           {displayEpisodeRating != null && displayEpisodeRating > 0 && (
             <div className="flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-black text-foreground backdrop-blur-md border border-white/10">
@@ -91,8 +91,8 @@ export const EpisodeCard = ({
             </div>
           )}
           <button
-            onClick={(e) => {
-              e.stopPropagation();
+            onClick={(event) => {
+              event.stopPropagation();
               onToggleFavorite();
             }}
             disabled={isFavoritePending}
@@ -116,7 +116,7 @@ export const EpisodeCard = ({
             )}
           </button>
           <div
-            onClick={(e) => e.stopPropagation()}
+            onClick={(event) => event.stopPropagation()}
             className="rounded-full p-0.5"
           >
             <CardActions

@@ -38,25 +38,25 @@ export const EpisodeDetailPage = () => {
     isLoading,
     error,
     refetch,
-  } = useAssetBySlug<IEpisodeData>({ assetType: "episodes", slug });
+  } = useAssetBySlug({ assetType: "episodes", slug });
 
   const {
-    assets: { data: seasons },
-  } = useAssetManager<ISeasonData>({ assetType: "seasons" });
+    assets: { data: seasons, isLoading: isSeasonsLoading },
+  } = useAssetManager("seasons");
 
   const {
-    assets: { data: tvShows },
-  } = useAssetManager<ITvShowData>({ assetType: "tvShows" });
+    assets: { data: tvShows, isLoading: isTvShowsLoading },
+  } = useAssetManager("tvShows");
 
   const {
     assets: { data: watchlists },
-  } = useAssetManager<IWatchlistData>({ assetType: "watchlist" });
+  } = useAssetManager("watchlist");
 
   const {
     submit,
     isSubmitting,
     deleteAsset: deleteEpisode,
-  } = useAssetManager<IEpisodeData>({ assetType: "episodes" });
+  } = useAssetManager("episodes");
 
   const { isFavorite, isPending, toggleFavorite } = useFavorite({ watchlists });
 
@@ -136,6 +136,8 @@ export const EpisodeDetailPage = () => {
                   href: routes.route.tvshowDetail(tvShow.title),
                 },
               ]
+            : isTvShowsLoading
+            ? [{ label: "Carregando..." }]
             : []),
           ...(season
             ? [
@@ -147,6 +149,8 @@ export const EpisodeDetailPage = () => {
                   ),
                 },
               ]
+            : isSeasonsLoading
+            ? [{ label: "..." }]
             : []),
           {
             label: episode

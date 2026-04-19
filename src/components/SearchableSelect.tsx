@@ -33,7 +33,7 @@ export const SearchableSelect = <T extends { "@key": string }>({
           type="text"
           placeholder={placeholder}
           value={searchTerm}
-          onChange={(e) => onSearchChange(e.target.value)}
+          onChange={(event) => onSearchChange(event.target.value)}
           className="w-full rounded-md border border-input bg-secondary/50 pl-8 pr-3 py-1.5 text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-ring focus:ring-inset"
         />
       </div>

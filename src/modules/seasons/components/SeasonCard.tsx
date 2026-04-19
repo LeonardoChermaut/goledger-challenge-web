@@ -50,7 +50,7 @@ export const SeasonCard = ({
         </Link>
         <div
           className="absolute right-3 top-3 flex items-center gap-2"
-          onClick={(e) => e.preventDefault()}
+          onClick={(event) => event.preventDefault()}
         >
           {displayAge != null && (
             <span
@@ -63,8 +63,8 @@ export const SeasonCard = ({
             </span>
           )}
           <button
-            onClick={(e) => {
-              e.stopPropagation();
+            onClick={(event) => {
+              event.stopPropagation();
               onToggleFavorite();
             }}
             disabled={isFavoritePending}
@@ -88,7 +88,7 @@ export const SeasonCard = ({
             )}
           </button>
           <div
-            onClick={(e) => e.stopPropagation()}
+            onClick={(event) => event.stopPropagation()}
             className="rounded-full p-0.5"
           >
             <CardActions

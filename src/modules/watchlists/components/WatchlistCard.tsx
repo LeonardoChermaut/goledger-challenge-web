@@ -50,7 +50,7 @@ export const WatchlistCard: FunctionComponent<WatchlistCardProps> = ({
         )}
         <div
           className="absolute right-3 top-3 rounded-full  p-0.5"
-          onClick={(e) => e.stopPropagation()}
+          onClick={(event) => event.stopPropagation()}
         >
           <CardActions
             onEdit={() => onEdit(watchlist)}
@@ -72,11 +72,11 @@ export const WatchlistCard: FunctionComponent<WatchlistCardProps> = ({
 
         {watchlist.tvShows && watchlist.tvShows.length > 0 ? (
           <div className="mt-4 flex flex-wrap gap-1.5">
-            {watchlist.tvShows.slice(0, 3).map((s) => {
-              const tvShowTitle = getTvShowTitle(s["@key"]);
+            {watchlist.tvShows.slice(0, 3).map((tvShowRef) => {
+              const tvShowTitle = getTvShowTitle(tvShowRef["@key"]);
               return (
                 <Link
-                  key={s["@key"]}
+                  key={tvShowRef["@key"]}
                   to={routes.route.tvshowDetail(tvShowTitle)}
                   title={tvShowTitle}
                   className="flex items-center gap-1.5 rounded-md bg-primary/5 px-2 py-1 text-[10px] font-black text-primary/70 border border-primary/10 transition-all hover:bg-primary/10 uppercase"

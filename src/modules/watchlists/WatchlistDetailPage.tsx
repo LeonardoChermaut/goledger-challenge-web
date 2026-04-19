@@ -4,25 +4,14 @@ import { DetailHero } from "@/components/DetailHero";
 import { Modal } from "@/components/Modal";
 import { useAssetBySlug, useAssetManager } from "@/hooks/use-assets";
 import { useHandlers } from "@/hooks/use-handlers";
-import { cn } from "@/lib/lib";
-import {
-  tvShowGradients,
-  watchlistGradients,
-} from "@/shared/constants/constants";
-import {
-  ITvShowData,
-  IWatchlistData,
-  IWatchlistFormData,
-} from "@/shared/interfaces/interfaces";
+import { watchlistGradients } from "@/shared/constants/constants";
 import { routes } from "@/shared/routes/routes";
-import {
-  findAssetByKey,
-  getAgeRecommendationColor,
-  getGradient,
-} from "@/shared/utils/utils";
+import { findAssetByKey, getGradient } from "@/shared/utils/utils";
 import { BookmarkPlus, Tv } from "lucide-react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { WatchlistForm } from "./components/WatchlistForm";
+import { WatchlistTvShowItem } from "./components/WatchlistTvShowItem";
+import { IWatchlistData, IWatchlistFormData } from "@/shared/interfaces/interfaces";
 
 export const WatchlistDetailPage = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -33,17 +22,17 @@ export const WatchlistDetailPage = () => {
     isLoading,
     error,
     refetch,
-  } = useAssetBySlug<IWatchlistData>({ assetType: "watchlist", slug });
+  } = useAssetBySlug({ assetType: "watchlist", slug });
 
   const {
     assets: { data: tvShows },
-  } = useAssetManager<ITvShowData>({ assetType: "tvShows" });
+  } = useAssetManager("tvShows");
 
   const {
     submit,
     isSubmitting,
     deleteAsset: deleteWatchlist,
-  } = useAssetManager<IWatchlistData>({ assetType: "watchlist" });
+  } = useAssetManager("watchlist");
 
   const handler = useHandlers<IWatchlistData>();
 
@@ -56,11 +45,12 @@ export const WatchlistDetailPage = () => {
       "@assetType": "watchlist",
       title: formData.title,
       description: formData.description,
-      tvShows: formData.tvShows.map((k) => ({
+      tvShows: formData.tvShows.map((key) => ({
         "@assetType": "tvShows" as const,
-        "@key": k,
+        "@key": key,
       })),
     };
+
     await submit(handler.editItem, payload);
     handler.formDisclosure.close();
   };
@@ -147,49 +137,13 @@ export const WatchlistDetailPage = () => {
               </div>
             ) : (
               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                {watchlist.tvShows.map((tvShowRef) => {
-                  const tvShow = findAssetByKey(tvShows, tvShowRef["@key"]);
-                  const displayTitle = tvShow?.title ?? tvShowRef["@key"];
-                  const tg = getGradient(tvShowGradients, displayTitle);
-
-                  return (
-                    <Link
-                      key={tvShowRef["@key"]}
-                      to={routes.route.tvshowDetail(displayTitle)}
-                      className="group/card glass-card overflow-hidden transition-all hover:border-primary/30 hover:shadow-lg hover:shadow-primary/5"
-                    >
-                      <div
-                        className={cn(
-                          "relative h-28 bg-gradient-to-br",
-                          tg,
-                          "flex items-center justify-center",
-                        )}
-                      >
-                        <Tv className="h-10 w-10 text-primary/20" />
-                        {tvShow?.recommendedAge && (
-                          <span
-                            className={cn(
-                              "absolute left-3 bottom-3 rounded-full px-2 py-0.5 text-[10px] font-bold uppercase ring-1 ring-inset ring-white/10 backdrop-blur-md",
-                              getAgeRecommendationColor(tvShow.recommendedAge),
-                            )}
-                          >
-                            {tvShow.recommendedAge}+
-                          </span>
-                        )}
-                      </div>
-                      <div className="p-4">
-                        <h3 className="font-heading text-sm font-semibold text-foreground group-hover/card:text-primary transition-colors line-clamp-1">
-                          {displayTitle}
-                        </h3>
-                        {tvShow && (
-                          <p className="mt-1.5 text-xs text-muted-foreground line-clamp-2 leading-relaxed">
-                            {tvShow.description}
-                          </p>
-                        )}
-                      </div>
-                    </Link>
-                  );
-                })}
+                {watchlist.tvShows.map((tvShowRef) => (
+                  <WatchlistTvShowItem
+                    key={tvShowRef["@key"]}
+                    tvShowRef={tvShowRef}
+                    tvShow={findAssetByKey(tvShows, tvShowRef["@key"])}
+                  />
+                ))}
               </div>
             )}
           </div>
@@ -208,7 +162,7 @@ export const WatchlistDetailPage = () => {
                   title: handler.editItem.title,
                   description: handler.editItem.description || "",
                   tvShows:
-                    handler.editItem.tvShows?.map((tv) => tv["@key"]) || [],
+                    handler.editItem.tvShows?.map((tvShow) => tvShow["@key"]) || [],
                 }
               : undefined
           }

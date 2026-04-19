@@ -63,9 +63,11 @@ export const EpisodeForm: FunctionComponent<EpisodeFormProps> = ({
 
   const filteredModalSeasons = useMemo(
     () =>
-      seasons?.filter((s) => {
-        const show = tvShows?.find((t) => t["@key"] === s.tvShow["@key"]);
-        const label = `${show?.title ?? ""} Temporada ${s.number}`;
+      seasons?.filter((season) => {
+        const tvShow = tvShows?.find(
+          (item) => item["@key"] === season.tvShow["@key"],
+        );
+        const label = `${tvShow?.title ?? ""} Temporada ${season.number}`;
         return label.toLowerCase().includes(searchModalTerm.toLowerCase());
       }) || [],
     [seasons, tvShows, searchModalTerm],
@@ -85,8 +87,8 @@ export const EpisodeForm: FunctionComponent<EpisodeFormProps> = ({
         onSearchChange={setSearchModalTerm}
         placeholder="Pesquisar programa ou temporada..."
         renderItem={(season) => {
-          const show = tvShows?.find(
-            (t) => t["@key"] === season.tvShow["@key"],
+          const tvShow = tvShows?.find(
+            (item) => item["@key"] === season.tvShow["@key"],
           );
 
           return (
@@ -101,7 +103,7 @@ export const EpisodeForm: FunctionComponent<EpisodeFormProps> = ({
                 className="rounded-full border-input accent-primary h-4 w-4"
                 disabled={isEditing}
               />
-              {show?.title ?? "?"} - Temporada {season.number}
+              {tvShow?.title ?? "?"} - Temporada {season.number}
             </label>
           );
         }}
@@ -183,10 +185,10 @@ export const EpisodeForm: FunctionComponent<EpisodeFormProps> = ({
           min="0"
           max="10"
           {...register("rating", {
-            validate: (value) =>
-              value === undefined ||
-              value === null ||
-              isValidRating(value) ||
+            validate: (ratingValue) =>
+              ratingValue === undefined ||
+              ratingValue === null ||
+              isValidRating(ratingValue) ||
               "Avaliação inválida (máx 10, ex: 8.5)",
           })}
           className="w-full rounded-md border border-input bg-secondary px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-inset"

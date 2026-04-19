@@ -9,7 +9,6 @@ import { useAssetManager } from "@/hooks/use-assets";
 import { useHandlers } from "@/hooks/use-handlers";
 import { usePagination } from "@/hooks/use-pagination";
 import {
-  ITvShowData,
   IWatchlistData,
   IWatchlistFormData,
 } from "@/shared/interfaces/interfaces";
@@ -24,10 +23,11 @@ export const WatchlistsPage = () => {
     submit,
     isSubmitting,
     deleteAsset: deleteWatchlist,
-  } = useAssetManager<IWatchlistData>({ assetType: "watchlist" });
+  } = useAssetManager("watchlist");
+
   const {
     assets: { data: tvShows },
-  } = useAssetManager<ITvShowData>({ assetType: "tvShows" });
+  } = useAssetManager("tvShows");
 
   const handler = useHandlers<IWatchlistData>();
 
@@ -40,7 +40,7 @@ export const WatchlistsPage = () => {
   } = usePagination({ data: watchlists });
 
   const { searchTerm, filteredData, handleSearchChange } =
-    useAssetSearch<IWatchlistData>({
+    useAssetSearch({
       data: watchlists,
       searchKey: "title",
       onFilterChange: resetPagination,

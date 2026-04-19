@@ -59,7 +59,7 @@ export const WatchlistForm: FunctionComponent<WatchlistFormProps> = ({
   const toggleShow = (key: string) => {
     const current = selectedTvShows ?? [];
     const next = current.includes(key)
-      ? current.filter((k) => k !== key)
+      ? current.filter((itemKey) => itemKey !== key)
       : [...current, key];
     setValue("tvShows", next, { shouldValidate: true });
   };

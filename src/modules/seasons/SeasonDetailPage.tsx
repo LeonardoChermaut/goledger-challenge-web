@@ -40,25 +40,25 @@ export const SeasonDetailPage = () => {
     isLoading,
     error,
     refetch,
-  } = useAssetBySlug<ISeasonData>({ assetType: "seasons", slug });
+  } = useAssetBySlug({ assetType: "seasons", slug });
 
   const {
-    assets: { data: tvShows },
-  } = useAssetManager<ITvShowData>({ assetType: "tvShows" });
+    assets: { data: tvShows, isLoading: isTvShowsLoading },
+  } = useAssetManager("tvShows");
 
   const {
     assets: { data: episodes },
-  } = useAssetManager<IEpisodeData>({ assetType: "episodes" });
+  } = useAssetManager("episodes");
 
   const {
     assets: { data: watchlists },
-  } = useAssetManager<IWatchlistData>({ assetType: "watchlist" });
+  } = useAssetManager("watchlist");
 
   const {
     submit,
     isSubmitting,
     deleteAsset: deleteSeason,
-  } = useAssetManager<ISeasonData>({ assetType: "seasons" });
+  } = useAssetManager("seasons");
 
   const { isFavorite, isPending, toggleFavorite } = useFavorite({ watchlists });
 
@@ -122,6 +122,8 @@ export const SeasonDetailPage = () => {
                   href: routes.route.tvshowDetail(tvShow.title),
                 },
               ]
+            : isTvShowsLoading
+            ? [{ label: "Carregando..." }]
             : []),
           { label: season ? `Temporada ${season.number}` : "Detalhes" },
         ]}
@@ -225,7 +227,7 @@ export const SeasonDetailPage = () => {
               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 {relatedEpisodes
                   .slice()
-                  .sort((a, b) => a.episodeNumber - b.episodeNumber)
+                  .sort((a, b) => Number(a.episodeNumber) - Number(b.episodeNumber))
                   .map((ep) => {
                     const eg = getGradient(episodeGradients, ep.title);
                     const hasRating = ep.rating != null && ep.rating > 0;

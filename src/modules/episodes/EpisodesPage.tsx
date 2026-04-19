@@ -4,6 +4,7 @@ import { PageShell } from "@/components/PageShell";
 import { Pagination } from "@/components/Pagination";
 import { QueryResult } from "@/components/QueryResult";
 import { SearchInput } from "@/components/SearchInput";
+import { AssetListGroup } from "@/components/AssetListGroup";
 import { useAssetSearch } from "@/hooks/use-asset-search";
 import { useAssetManager } from "@/hooks/use-assets";
 import { useFavorite } from "@/hooks/use-favorite";
@@ -13,9 +14,6 @@ import { usePagination } from "@/hooks/use-pagination";
 import {
   IEpisodeData,
   IEpisodeFormData,
-  ISeasonData,
-  ITvShowData,
-  IWatchlistData,
 } from "@/shared/interfaces/interfaces";
 import {
   findAssetByKey,
@@ -34,16 +32,19 @@ export const EpisodesPage = () => {
     submit,
     isSubmitting,
     deleteAsset: deleteEpisode,
-  } = useAssetManager<IEpisodeData>({ assetType: "episodes" });
+  } = useAssetManager("episodes");
+
   const {
     assets: { data: seasons },
-  } = useAssetManager<ISeasonData>({ assetType: "seasons" });
+  } = useAssetManager("seasons");
+
   const {
     assets: { data: tvShows },
-  } = useAssetManager<ITvShowData>({ assetType: "tvShows" });
+  } = useAssetManager("tvShows");
+
   const {
     assets: { data: watchlists },
-  } = useAssetManager<IWatchlistData>({ assetType: "watchlist" });
+  } = useAssetManager("watchlist");
 
   const { isFavorite, isPending, toggleFavorite } = useFavorite({ watchlists });
 
@@ -74,7 +75,7 @@ export const EpisodesPage = () => {
   const { resetPagination } = usePagination({ data: episodes });
 
   const { searchTerm, filteredData, handleSearchChange } =
-    useAssetSearch<IEpisodeData>({
+    useAssetSearch({
       data: episodes,
       customFilter: (item, term) =>
         getTvShowTitleFromEpisode(item, seasons ?? [], tvShows ?? [])
@@ -83,7 +84,21 @@ export const EpisodesPage = () => {
       onFilterChange: resetPagination,
     });
 
-  const sortedEpisodes = sortByFavorite(filteredData ?? [], isEpisodeFavorite);
+  const initialSorted = [...(filteredData ?? [])].sort((a, b) => {
+    const showA = getTvShowTitleFromEpisode(a, seasons ?? [], tvShows ?? []);
+    const showB = getTvShowTitleFromEpisode(b, seasons ?? [], tvShows ?? []);
+    if (showA !== showB) return showA.localeCompare(showB);
+
+    const seasonA =
+      seasons?.find((s) => s["@key"] === a.season["@key"])?.number || 0;
+    const seasonB =
+      seasons?.find((s) => s["@key"] === b.season["@key"])?.number || 0;
+    if (seasonA !== seasonB) return Number(seasonA) - Number(seasonB);
+
+    return Number(a.episodeNumber) - Number(b.episodeNumber);
+  });
+
+  const sortedEpisodes = sortByFavorite(initialSorted, isEpisodeFavorite);
 
   const {
     currentPage: sortedPage,
@@ -103,13 +118,10 @@ export const EpisodesPage = () => {
       "@assetType": "episodes",
       ...formData,
       season: { "@assetType": "seasons", "@key": formData.season },
-      episodeNumber: formData.episodeNumber,
-      title: formData.title,
       releaseDate: formData.releaseDate
         ? new Date(formData.releaseDate).toISOString()
         : "",
-      description: formData.description,
-      rating: formData.rating,
+      rating: formData.rating ? Number(formData.rating) : undefined,
     };
 
     await submit(handler.editItem, payload);
@@ -155,56 +167,42 @@ export const EpisodesPage = () => {
             emptyMessage="Nenhum episódio encontrado."
             onRetry={() => refetch()}
           >
-            <div className="space-y-12">
-              {groupedEpisodes.map(([showTitle, items], index) => (
-                <div key={showTitle} className="animate-fade-in">
-                  {index > 0 && <hr className="mb-8 border-border/40" />}
-                  <h2 className="mb-6 text-xl font-semibold text-foreground/90">
-                    {showTitle}
-                  </h2>
-                  <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                    {items.map((episode) => {
-                      const season = findAssetByKey(
-                        seasons,
-                        episode.season["@key"],
-                      );
-                      const tvShow = season
-                        ? findAssetByKey(tvShows, season.tvShow["@key"])
-                        : null;
-                      const tvShowTitle = tvShow?.title ?? "";
-                      const seasonNumber = season?.number ?? 0;
-                      const tvShowKey = getEpisodeTvShowKey(episode);
+            <AssetListGroup
+              groups={groupedEpisodes}
+              renderItem={(episode) => {
+                const season = findAssetByKey(seasons, episode.season["@key"]);
+                const tvShow = season
+                  ? findAssetByKey(tvShows, season.tvShow["@key"])
+                  : null;
+                const tvShowTitle = tvShow?.title ?? "";
+                const seasonNumber = season?.number ?? 0;
+                const tvShowKey = getEpisodeTvShowKey(episode);
 
-                      return (
-                        <EpisodeCard
-                          key={episode["@key"]}
-                          episode={episode}
-                          onEdit={handler.openEdit}
-                          onDelete={handler.openDelete}
-                          isFavorite={isEpisodeFavorite(episode)}
-                          isFavoritePending={
-                            tvShowKey ? isPending(tvShowKey) : false
-                          }
-                          onToggleFavorite={() => handleToggleFavorite(episode)}
-                          seasonLabel={getEpisodeSeasonLabel(
-                            episode,
-                            seasons ?? [],
-                            tvShows ?? [],
-                          )}
-                          seasonNumber={seasonNumber}
-                          tvShowTitle={tvShowTitle}
-                          tvShowAge={getTvShowAgeFromEpisode(
-                            episode,
-                            seasons ?? [],
-                            tvShows ?? [],
-                          )}
-                        />
-                      );
-                    })}
-                  </div>
-                </div>
-              ))}
-            </div>
+                return (
+                  <EpisodeCard
+                    key={episode["@key"]}
+                    episode={episode}
+                    onEdit={handler.openEdit}
+                    onDelete={handler.openDelete}
+                    isFavorite={isEpisodeFavorite(episode)}
+                    isFavoritePending={tvShowKey ? isPending(tvShowKey) : false}
+                    onToggleFavorite={() => handleToggleFavorite(episode)}
+                    seasonLabel={getEpisodeSeasonLabel(
+                      episode,
+                      seasons ?? [],
+                      tvShows ?? [],
+                    )}
+                    seasonNumber={seasonNumber}
+                    tvShowTitle={tvShowTitle}
+                    tvShowAge={getTvShowAgeFromEpisode(
+                      episode,
+                      seasons ?? [],
+                      tvShows ?? [],
+                    )}
+                  />
+                );
+              }}
+            />
           </QueryResult>
         </div>
 

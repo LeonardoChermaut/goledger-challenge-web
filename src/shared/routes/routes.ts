@@ -4,19 +4,29 @@ export const routes = {
   route: {
     home: "/",
     tvshows: "/tvshows",
-    tvshowDetail: (title: string) => `/tvshows/${slugify(title)}`,
-    tvshowDetailPattern: "/tvshows/:slug",
     seasons: "/seasons",
-    seasonDetail: (showTitle: string, seasonNumber: number | string) =>
-      `/seasons/${slugify(`${showTitle} Temporada ${seasonNumber}`)}`,
-    seasonDetailPattern: "/seasons/:slug",
     episodes: "/episodes",
-    episodeDetail: (showTitle: string, seasonNumber: number | string, episodeNumber: number | string, title: string) => 
-      `/episodes/${slugify(`${showTitle} S${seasonNumber} E${episodeNumber} ${title}`)}`,
-    episodeDetailPattern: "/episodes/:slug",
     watchlists: "/watchlists",
-    watchlistDetail: (title: string) => `/watchlists/${slugify(title)}`,
+
+    tvshowDetailPattern: "/tvshows/:slug",
+    seasonDetailPattern: "/seasons/:slug",
+    episodeDetailPattern: "/episodes/:slug",
     watchlistDetailPattern: "/watchlists/:slug",
+
+    tvshowDetail: (title: string) => `/tvshows/${slugify(title)}`,
+
+    watchlistDetail: (title: string) => `/watchlists/${slugify(title)}`,
+
+    seasonDetail: (showTitle: string, seasonNumber: number | string) =>
+      `/seasons/${slugify(`${showTitle}-temporada-${seasonNumber}`)}`,
+
+    episodeDetail: (
+      showTitle: string,
+      seasonNumber: number | string,
+      episodeNumber: number | string,
+      title: string,
+    ) =>
+      `/episodes/${slugify(`${showTitle}-temporada-${seasonNumber}-episodio-${episodeNumber}-${title}`)}`,
   },
   api: {
     methods: {

@@ -47,8 +47,8 @@ export const SeasonForm: FunctionComponent<SeasonFormProps> = ({
 
   const filteredModalTvShows = useMemo(
     () =>
-      tvShows?.filter((s) =>
-        s.title.toLowerCase().includes(searchModalTerm.toLowerCase()),
+      tvShows?.filter((show) =>
+        show.title.toLowerCase().includes(searchModalTerm.toLowerCase()),
       ) || [],
     [tvShows, searchModalTerm],
   );
@@ -67,19 +67,19 @@ export const SeasonForm: FunctionComponent<SeasonFormProps> = ({
         items={filteredModalTvShows}
         searchTerm={searchModalTerm}
         onSearchChange={setSearchModalTerm}
-        renderItem={(s) => (
+        renderItem={(show) => (
           <label className="flex items-center gap-2 cursor-pointer text-sm text-foreground transition-colors hover:bg-primary/5 p-1 rounded">
             <input
               type="checkbox"
               name="tvShow"
-              checked={selectedTvShow === s["@key"]}
+              checked={selectedTvShow === show["@key"]}
               onChange={() =>
-                setValue("tvShow", s["@key"], { shouldValidate: true })
+                setValue("tvShow", show["@key"], { shouldValidate: true })
               }
               className="rounded-full border-input accent-primary h-4 w-4"
               disabled={isEditing}
             />
-            {s.title}
+            {show.title}
           </label>
         )}
       />

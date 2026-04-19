@@ -32,7 +32,7 @@ export const slugify = (text: string): string =>
     .replace(/[\u0300-\u036f]/g, "")
     .replace(/\s+/g, "-")
     .replace(/[^\w-]+/g, "")
-    .replace(/--+/g, "-") + "--";
+    .replace(/--+/g, "-");
 
 export const isValidRating = (value: number): boolean => {
   if (value < 0 || value > 10) {
@@ -257,3 +257,17 @@ export const sortByFavorite = <T>(
     return 0;
   });
 };
+
+export const sortSeasons = (seasons: ISeasonData[]): ISeasonData[] =>
+  [...seasons].sort((firstSeason, secondSeason) => {
+    const firstNum = Number(firstSeason.number);
+    const secondNum = Number(secondSeason.number);
+    return firstNum - secondNum;
+  });
+
+export const sortEpisodes = (episodes: IEpisodeData[]): IEpisodeData[] =>
+  [...episodes].sort((firstEpisode, secondEpisode) => {
+    const firstNum = Number(firstEpisode.episodeNumber);
+    const secondNum = Number(secondEpisode.episodeNumber);
+    return firstNum - secondNum;
+  });
