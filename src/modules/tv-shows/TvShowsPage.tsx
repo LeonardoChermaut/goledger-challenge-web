@@ -39,11 +39,10 @@ export const TvShowsPage = () => {
   const { searchTerm, filteredData, handleSearchChange } =
     useAssetSearch<ITvShowData>({
       data: tvShows,
-      searchKey: "title",
       onFilterChange: resetPagination,
     });
 
-  const sortedData = sortByFavorite(filteredData ?? [], (show) =>
+  const sortedTvShows = sortByFavorite(filteredData ?? [], (show) =>
     isFavorite(show["@key"]),
   );
 
@@ -52,17 +51,17 @@ export const TvShowsPage = () => {
     totalPages: sortedTotalPages,
     paginatedData: sortedPaginatedData,
     onPageChange,
-  } = usePagination({ data: sortedData });
+  } = usePagination({ data: sortedTvShows });
 
   const handleFormSubmit = async (formData: ITvShowFormData) => {
-    const payload: Omit<ITvShowData, "@key"> = {
+    const payloadIndex: Omit<ITvShowData, "@key"> = {
       "@assetType": "tvShows",
       title: formData.title,
       description: formData.description,
       ...formData,
     };
 
-    await submit(handler.editItem, payload);
+    await submit(handler.editItem, payloadIndex);
     handler.formDisclosure.close();
   };
 
@@ -78,7 +77,7 @@ export const TvShowsPage = () => {
   return (
     <PageShell
       title="Programas de TV"
-      description="Navegue e gerencie o catalogo de programas de TV"
+      description="Gerencie seu catálogo de séries e programas"
       icon={Tv}
       action={
         <button
@@ -92,7 +91,7 @@ export const TvShowsPage = () => {
       <SearchInput
         value={searchTerm}
         onChange={handleSearchChange}
-        placeholder="Pesquisar programas de TV..."
+        placeholder="Pesquisar por título..."
         className="mb-8"
       />
 
@@ -105,7 +104,7 @@ export const TvShowsPage = () => {
             emptyMessage="Nenhum programa de TV encontrado."
             onRetry={() => refetch()}
           >
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
               {sortedPaginatedData.map((show) => (
                 <TvShowCard
                   key={show["@key"]}
@@ -134,16 +133,14 @@ export const TvShowsPage = () => {
       <Modal
         open={handler.formDisclosure.isOpen}
         onClose={handler.formDisclosure.close}
-        title={
-          handler.editItem ? "Editar Programa de TV" : "Novo Programa de TV"
-        }
+        title={handler.editItem ? "Editar Programa" : "Novo Programa"}
       >
         <TvShowForm
           initialData={handler.editItem}
           onSubmit={handleFormSubmit}
+          onCancel={handler.formDisclosure.close}
           isSubmitting={isSubmitting}
           isEditing={!!handler.editItem}
-          onCancel={handler.formDisclosure.close}
         />
       </Modal>
 
@@ -152,8 +149,8 @@ export const TvShowsPage = () => {
         onConfirm={handleDeleteConfirm}
         onClose={handler.deleteDisclosure.close}
         loading={deleteTvShow.isPending}
-        title="Remover Programa de TV"
-        message={`Tem certeza que deseja remover "${handler.deleteItem?.title}"? Esta acao nao pode ser desfeita.`}
+        title="Remover Registro"
+        message={`Deseja realmente remover o programa "${handler.deleteItem?.title}"?`}
       />
     </PageShell>
   );

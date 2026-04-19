@@ -2,6 +2,7 @@ import { CardActions } from "@/components/CardActions";
 import { cn } from "@/lib/lib";
 import { episodeGradients } from "@/shared/constants/constants";
 import { IEpisodeData } from "@/shared/interfaces/interfaces";
+import { routes } from "@/shared/routes/routes";
 import {
   getAgeRecommendationColor,
   getEpisodeDisplayDate,
@@ -10,10 +11,13 @@ import {
   isValidEpisodeRating,
 } from "@/shared/utils/utils";
 import { Calendar, Heart, Loader2, PlayCircle, Star } from "lucide-react";
+import { Link } from "react-router-dom";
 
 type EpisodeCardProps = {
   episode: IEpisodeData;
   seasonLabel: string;
+  seasonNumber: number;
+  tvShowTitle: string;
   tvShowAge: number | undefined;
   isFavorite: boolean;
   isFavoritePending: boolean;
@@ -22,9 +26,12 @@ type EpisodeCardProps = {
   onToggleFavorite: () => void;
 };
 
+
 export const EpisodeCard = ({
   episode,
   seasonLabel,
+  seasonNumber,
+  tvShowTitle,
   tvShowAge,
   isFavorite,
   isFavoritePending,
@@ -32,6 +39,7 @@ export const EpisodeCard = ({
   onDelete,
   onToggleFavorite,
 }: EpisodeCardProps) => {
+
   const displayTvShowAge =
     tvShowAge != null && isValidAge(tvShowAge) ? tvShowAge : null;
 
@@ -44,73 +52,95 @@ export const EpisodeCard = ({
 
   return (
     <div className="group glass-card overflow-hidden transition-all hover:border-primary/30 hover:shadow-lg hover:shadow-primary/5 animate-fade-in">
-      <div
-        className={`relative h-36 bg-gradient-to-br ${gradient} cursor-pointer`}
-      >
-        <div className="absolute inset-0 flex items-center justify-center">
-          <PlayCircle className="h-12 w-12 text-primary/20 mt-10" />
-        </div>
-        <div className="p-4">
-          <div className="min-w-0 flex-1">
-            <h3 className="font-heading text-sm font-semibold text-foreground group-hover:text-primary transition-colors line-clamp-1">
-              {episode.title}
-            </h3>
-            <div className="mt-1 flex items-center gap-2 text-xs text-muted-foreground">
-              <span className="line-clamp-1">{seasonLabel}</span>
-              <span>·</span>
-              <span>E{episode.episodeNumber}</span>
+      <div className={`relative h-36 bg-gradient-to-br ${gradient}`}>
+        <Link
+          to={routes.route.episodeDetail(
+            tvShowTitle,
+            seasonNumber,
+            episode.episodeNumber,
+            episode.title,
+          )}
+          aria-label={`Ver detalhes do episódio ${episode.episodeNumber}: ${episode.title}`}
+          className="absolute inset-0 flex flex-col justify-end"
+        >
+
+          <div className="absolute inset-0 flex items-center justify-center">
+            <PlayCircle className="h-12 w-12 text-primary/20 mt-10" />
+          </div>
+          <div className="p-4">
+            <div className="min-w-0 flex-1">
+              <h3 className="font-heading text-sm font-semibold text-foreground group-hover:text-primary transition-colors line-clamp-1">
+                {episode.title}
+              </h3>
+              <div className="mt-1 flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground/60">
+                <span className="line-clamp-1">{seasonLabel}</span>
+                <span className="h-1 w-1 rounded-full bg-border" />
+                <span>E{episode.episodeNumber}</span>
+              </div>
             </div>
           </div>
-        </div>
-        <div className="absolute right-3 top-3 flex items-center gap-2">
-          {displayEpisodeRating != null && (
-            <div className="flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium text-foreground backdrop-blur-sm">
-              <Star className="h-3 w-3 fill-current text-primary" />
-              {displayEpisodeRating < Number(`${displayEpisodeRating}.1`)
-                ? `${displayEpisodeRating}.0`
-                : displayEpisodeRating}
+        </Link>
+        <div
+          className="absolute right-3 top-3 flex items-center gap-2"
+          onClick={(e) => e.preventDefault()}
+        >
+          {displayEpisodeRating != null && displayEpisodeRating > 0 && (
+            <div className="flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-black text-foreground backdrop-blur-md border border-white/10">
+              <Star className="h-2.5 w-2.5 fill-current text-primary" />
+              {displayEpisodeRating.toFixed(1)}
             </div>
           )}
           <button
-            onClick={onToggleFavorite}
+            onClick={(e) => {
+              e.stopPropagation();
+              onToggleFavorite();
+            }}
             disabled={isFavoritePending}
             className={cn(
-              "rounded-full p-1 backdrop-blur-sm transition-colors",
+              "rounded-full p-1.5",
               isFavoritePending && "pointer-events-none opacity-50",
               isFavorite
-                ? "text-red-500"
-                : "text-muted-foreground hover:text-red-500",
+                ? "text-red-500 hover:bg-red-500/5"
+                : "text-muted-foreground hover:text-red-500 hover:bg-red-500/5",
             )}
             title={
               isFavorite ? "Remover dos favoritos" : "Adicionar aos favoritos"
             }
           >
             {isFavoritePending ? (
-              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              <Loader2 className="h-3 w-3 animate-spin" />
             ) : (
               <Heart
-                className={cn(
-                  `h-3.5 w-3.5 ${isFavorite && "fill-current"} ${!isFavorite && "hover:fill-red-500"}`,
-                )}
+                className={cn(`h-3 w-3 ${isFavorite && "fill-current"}`)}
               />
             )}
           </button>
-          <CardActions
-            onEdit={() => onEdit(episode)}
-            onDelete={() => onDelete(episode)}
-          />
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="rounded-full p-0.5"
+          >
+            <CardActions
+              onEdit={() => onEdit(episode)}
+              onDelete={() => onDelete(episode)}
+            />
+          </div>
         </div>
       </div>
 
-      <div className="p-4">
-        <div className="min-w-0 flex-1"></div>
-
-        <p className="text-sm font-semibold text-foreground">Descrição</p>
-        <p className="mt-1 line-clamp-2 text-sm text-muted-foreground/80 leading-relaxed">
-          {episode.description}
+      <Link
+        to={routes.route.episodeDetail(
+          tvShowTitle,
+          seasonNumber,
+          episode.episodeNumber,
+          episode.title,
+        )}
+        className="block p-4"
+      >
+        <p className="line-clamp-2 text-sm text-foreground/70 leading-relaxed italic">
+          "{episode.description}"
         </p>
 
-        <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1.5 text-xs text-muted-foreground/70">
+        <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1.5 text-[10px] font-bold uppercase tracking-wider text-muted-foreground/60">
           <div className="flex items-center gap-1.5">
             <Calendar className="h-3.5 w-3.5" />
             <span>{getEpisodeDisplayDate(episode, tvShowAge)}</span>
@@ -119,8 +149,8 @@ export const EpisodeCard = ({
             <div className="flex items-center gap-1.5">
               <span
                 className={cn(
-                  "rounded px-1.5 py-0.5 text-xs font-medium",
-                  getAgeRecommendationColor(displayTvShowAge),
+                  "rounded px-1.5 py-0.5",
+                  getAgeRecommendationColor(displayTvShowAge, true),
                 )}
               >
                 {displayTvShowAge}+
@@ -128,7 +158,7 @@ export const EpisodeCard = ({
             </div>
           )}
         </div>
-      </div>
+      </Link>
     </div>
   );
 };

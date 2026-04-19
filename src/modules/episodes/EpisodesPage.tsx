@@ -45,54 +45,43 @@ export const EpisodesPage = () => {
     assets: { data: watchlists },
   } = useAssetManager<IWatchlistData>({ assetType: "watchlist" });
 
-  const {
-    isFavorite: isWatchlistFavorite,
-    isPending,
-    toggleFavorite,
-  } = useFavorite({ watchlists });
+  const { isFavorite, isPending, toggleFavorite } = useFavorite({ watchlists });
 
   const handler = useHandlers<IEpisodeData>();
+
+  const isEpisodeFavorite = (episode: IEpisodeData) => {
+    const season = findAssetByKey(seasons, episode.season["@key"]);
+    return season ? isFavorite(season.tvShow["@key"]) : false;
+  };
+
+  const getEpisodeTvShowKey = (episode: IEpisodeData) => {
+    const season = findAssetByKey(seasons, episode.season["@key"]);
+    return season?.tvShow["@key"];
+  };
+
+  const handleToggleFavorite = (episode: IEpisodeData) => {
+    const season = findAssetByKey(seasons, episode.season["@key"]);
+    if (!season) {
+      return;
+    }
+
+    const tvShow = findAssetByKey(tvShows, season.tvShow["@key"]);
+    if (tvShow) {
+      toggleFavorite(tvShow.title, tvShow.description, tvShow["@key"]);
+    }
+  };
 
   const { resetPagination } = usePagination({ data: episodes });
 
   const { searchTerm, filteredData, handleSearchChange } =
     useAssetSearch<IEpisodeData>({
       data: episodes,
-      customFilter: (item, term) => {
-        const season = findAssetByKey(seasons, item.season["@key"]);
-        if (!season) {
-          return item.title.toLowerCase().includes(term);
-        }
-
-        const tvShow = findAssetByKey(tvShows, season.tvShow["@key"]);
-        const tvShowTitle = tvShow?.title ?? "";
-
-        return (
-          item.title.toLowerCase().includes(term) ||
-          tvShowTitle.toLowerCase().includes(term) ||
-          String(season.number).includes(term)
-        );
-      },
+      customFilter: (item, term) =>
+        getTvShowTitleFromEpisode(item, seasons ?? [], tvShows ?? [])
+          .toLowerCase()
+          .includes(term) || item.title.toLowerCase().includes(term),
       onFilterChange: resetPagination,
     });
-
-  const getEpisodeTvShowKey = (episode: IEpisodeData): string | null => {
-    const season = findAssetByKey(seasons, episode.season["@key"]);
-    if (!season) {
-      return null;
-    }
-
-    return season.tvShow["@key"];
-  };
-
-  const isEpisodeFavorite = (episode: IEpisodeData): boolean => {
-    const tvShowKey = getEpisodeTvShowKey(episode);
-    if (!tvShowKey) {
-      return false;
-    }
-
-    return isWatchlistFavorite(tvShowKey);
-  };
 
   const sortedEpisodes = sortByFavorite(filteredData ?? [], isEpisodeFavorite);
 
@@ -108,20 +97,6 @@ export const EpisodesPage = () => {
     groupBy: (episode) =>
       getTvShowTitleFromEpisode(episode, seasons ?? [], tvShows ?? []),
   });
-
-  const handleToggleFavorite = async (ep: IEpisodeData) => {
-    const season = findAssetByKey(seasons, ep.season["@key"]);
-    if (!season) {
-      return;
-    }
-
-    const tvShow = findAssetByKey(tvShows, season.tvShow["@key"]);
-    if (!tvShow) {
-      return;
-    }
-
-    await toggleFavorite(tvShow.title, tvShow.description, tvShow["@key"]);
-  };
 
   const handleFormSubmit = async (formData: IEpisodeFormData) => {
     const payload: Omit<IEpisodeData, "@key"> = {
@@ -152,22 +127,22 @@ export const EpisodesPage = () => {
 
   return (
     <PageShell
-      title="Episodios"
-      description="Navegue e gerencie os episodios"
+      title="Episódios"
+      description="Gerencie os episódios de todas as temporadas"
       icon={PlayCircle}
       action={
         <button
           onClick={handler.openCreate}
           className="flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
         >
-          <Plus className="h-4 w-4" /> Adicionar Episodio
+          <Plus className="h-4 w-4" /> Adicionar Episódio
         </button>
       }
     >
       <SearchInput
         value={searchTerm}
         onChange={handleSearchChange}
-        placeholder="Pesquisar episodios..."
+        placeholder="Pesquisar por série ou título..."
         className="mb-8"
       />
 
@@ -177,7 +152,7 @@ export const EpisodesPage = () => {
             loading={isLoading}
             error={error}
             empty={filteredData.length === 0}
-            emptyMessage="Nenhum episodio encontrado."
+            emptyMessage="Nenhum episódio encontrado."
             onRetry={() => refetch()}
           >
             <div className="space-y-12">
@@ -187,10 +162,19 @@ export const EpisodesPage = () => {
                   <h2 className="mb-6 text-xl font-semibold text-foreground/90">
                     {showTitle}
                   </h2>
-
                   <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                     {items.map((episode) => {
+                      const season = findAssetByKey(
+                        seasons,
+                        episode.season["@key"],
+                      );
+                      const tvShow = season
+                        ? findAssetByKey(tvShows, season.tvShow["@key"])
+                        : null;
+                      const tvShowTitle = tvShow?.title ?? "";
+                      const seasonNumber = season?.number ?? 0;
                       const tvShowKey = getEpisodeTvShowKey(episode);
+
                       return (
                         <EpisodeCard
                           key={episode["@key"]}
@@ -207,6 +191,8 @@ export const EpisodesPage = () => {
                             seasons ?? [],
                             tvShows ?? [],
                           )}
+                          seasonNumber={seasonNumber}
+                          tvShowTitle={tvShowTitle}
                           tvShowAge={getTvShowAgeFromEpisode(
                             episode,
                             seasons ?? [],
@@ -233,7 +219,7 @@ export const EpisodesPage = () => {
       <Modal
         open={handler.formDisclosure.isOpen}
         onClose={handler.formDisclosure.close}
-        title={handler.editItem ? "Editar Episodio" : "Novo Episodio"}
+        title={handler.editItem ? "Editar Episódio" : "Novo Episódio"}
       >
         <EpisodeForm
           initialData={
@@ -266,8 +252,8 @@ export const EpisodesPage = () => {
         open={handler.deleteDisclosure.isOpen}
         onClose={handler.deleteDisclosure.close}
         onConfirm={handleDeleteConfirm}
-        title="Remover Episodio"
-        message={`Deseja remover o Episodio ${handler.deleteItem?.episodeNumber} de "${handler.deleteItem?.title}"? Esta acao nao pode ser desfeita.`}
+        title="Remover Registro"
+        message={`Deseja excluir este episódio?`}
         loading={deleteEpisode.isPending}
       />
     </PageShell>

@@ -2,12 +2,14 @@ import { CardActions } from "@/components/CardActions";
 import { cn } from "@/lib/lib";
 import { seasonGradients } from "@/shared/constants/constants";
 import { ISeasonData } from "@/shared/interfaces/interfaces";
+import { routes } from "@/shared/routes/routes";
 import {
   getAgeRecommendationColor,
   getGradient,
   isValidAge,
 } from "@/shared/utils/utils";
 import { Film, Heart, Loader2 } from "lucide-react";
+import { Link } from "react-router-dom";
 
 type SeasonCardProps = {
   season: ISeasonData;
@@ -36,66 +38,82 @@ export const SeasonCard = ({
 
   return (
     <div className="group glass-card overflow-hidden transition-all hover:border-primary/30 hover:shadow-lg hover:shadow-primary/5 animate-fade-in">
-      <div
-        className={`relative h-36 bg-gradient-to-br ${gradient} cursor-pointer`}
-      >
-        <div className="absolute inset-0 flex items-center justify-center">
-          <Film className="h-12 w-12 text-primary/20" />
-        </div>
-        <div className="absolute right-3 top-3 flex items-center gap-2">
+      <div className={`relative h-36 bg-gradient-to-br ${gradient}`}>
+        <Link
+          to={routes.route.seasonDetail(tvShowTitle, season.number)}
+          aria-label={`Ver detalhes da Temporada ${season.number} de ${tvShowTitle}`}
+          className="absolute inset-0"
+        >
+          <div className="absolute inset-0 flex items-center justify-center">
+            <Film className="h-12 w-12 text-primary/20" />
+          </div>
+        </Link>
+        <div
+          className="absolute right-3 top-3 flex items-center gap-2"
+          onClick={(e) => e.preventDefault()}
+        >
           {displayAge != null && (
             <span
               className={cn(
-                "rounded-full px-2 py-0.5 text-xs font-medium backdrop-blur-sm",
-                getAgeRecommendationColor(displayAge),
+                "rounded-full px-2 py-0.5 text-[10px] font-bold uppercase backdrop-blur-md ring-1 ring-inset ring-white/10",
+                getAgeRecommendationColor(displayAge, true),
               )}
             >
               {displayAge}+
             </span>
           )}
           <button
-            onClick={onToggleFavorite}
+            onClick={(e) => {
+              e.stopPropagation();
+              onToggleFavorite();
+            }}
             disabled={isFavoritePending}
             className={cn(
-              "rounded-full p-1 transition-colors",
+              "rounded-full p-1.5 backdrop-blur-md transition-all hover:bg-red-500/5",
               isFavoritePending && "pointer-events-none opacity-50",
               isFavorite
                 ? "text-red-500"
-                : "text-muted-foreground hover:text-red-500",
+                : "text-muted-foreground hover:text-red-500 hover:bg-red-500/5",
             )}
             title={
               isFavorite ? "Remover dos favoritos" : "Adicionar aos favoritos"
             }
           >
             {isFavoritePending ? (
-              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              <Loader2 className="h-3 w-3 animate-spin" />
             ) : (
               <Heart
-                className={cn(
-                  `h-3.5 w-3.5 ${isFavorite && "fill-current"} ${!isFavorite && "hover:fill-red-500"}`,
-                )}
+                className={cn(`h-3 w-3 ${isFavorite && "fill-current"}`)}
               />
             )}
           </button>
-          <CardActions
-            onEdit={() => onEdit(season)}
-            onDelete={() => onDelete(season)}
-          />
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="rounded-full p-0.5"
+          >
+            <CardActions
+              onEdit={() => onEdit(season)}
+              onDelete={() => onDelete(season)}
+            />
+          </div>
         </div>
       </div>
 
-      <div className="p-4">
+      <Link
+        to={routes.route.seasonDetail(tvShowTitle, season.number)}
+        className="block p-4"
+      >
         <div className="min-w-0 flex-1">
           <h3 className="font-heading text-sm font-semibold text-foreground group-hover:text-primary transition-colors line-clamp-1">
             {tvShowTitle}
           </h3>
-          <div className="mt-1 flex items-center gap-2 text-xs text-muted-foreground">
+          <div className="mt-1 flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground/60">
             <span>Temporada {season.number}</span>
-            <span>·</span>
+            <span className="h-1 w-1 rounded-full bg-border" />
             <span>{season.year}</span>
           </div>
         </div>
-      </div>
+      </Link>
     </div>
   );
 };

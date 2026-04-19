@@ -1,5 +1,6 @@
 import { routes } from "@/shared/routes/routes";
 import { api } from "@/shared/services/service";
+import { slugify } from "@/shared/utils/utils";
 import {
   useMutation,
   useQuery,
@@ -26,7 +27,6 @@ const useAssets = <T>(assetType: string, enabled = true) =>
           },
         },
       );
-
       return result;
     },
     enabled,
@@ -80,10 +80,118 @@ const useDeleteAsset = (assetType: string) => {
       queryClient.invalidateQueries({ queryKey: ["assets", assetType] });
       toast.success("Removido com sucesso!");
     },
-    onError: () =>
-      toast.error(
-        "Não foi possível remover. Verifique se não há nenhum item vinculado a este.",
-      ),
+    onError: (error: unknown) => {
+      const serverMessage =
+        typeof error === "object" &&
+        error !== null &&
+        "message" in error &&
+        typeof (error as { message: unknown }).message === "string"
+          ? (error as { message: string }).message
+          : "Erro ao remover.";
+
+      const userMessage =
+        serverMessage && serverMessage.length < 300
+          ? serverMessage
+          : "Não foi possível remover. Verifique se não há itens vinculados a este registro.";
+
+      toast.error(userMessage, { duration: 6000 });
+    },
+  });
+};
+
+export const useAssetBySlug = <
+  T extends {
+    "@key": string;
+    title?: string;
+    number?: number;
+    "@assetType": string;
+  },
+>({
+  assetType,
+  slug,
+  enabled = true,
+}: {
+  assetType: string;
+  slug: string | undefined;
+  enabled?: boolean;
+}) => {
+  return useQuery({
+    queryKey: ["asset", assetType, slug],
+    queryFn: async () => {
+      if (!slug) {
+        return null;
+      }
+
+      const { result: assets } = await api.post<{ result: any[] }, unknown>(
+        routes.api.methods.search,
+        {
+          query: {
+            selector: {
+              "@assetType": assetType,
+            },
+          },
+        },
+      );
+
+      const { result: tvShows } = await api.post<{ result: any[] }, unknown>(
+        routes.api.methods.search,
+        {
+          query: {
+            selector: {
+              "@assetType": "tvShows",
+            },
+          },
+        },
+      );
+
+      const { result: seasons } = await api.post<{ result: any[] }, unknown>(
+        routes.api.methods.search,
+        {
+          query: {
+            selector: {
+              "@assetType": "seasons",
+            },
+          },
+        },
+      );
+
+      const findAsset = (list: any[], key: string) =>
+        list.find((a) => a["@key"] === key);
+
+      const item = assets.find((a) => {
+        if (assetType === "tvShows" || assetType === "watchlist") {
+          return slugify(a.title || "") === slug;
+        }
+
+        if (assetType === "seasons") {
+          const parent = findAsset(tvShows, a.tvShow["@key"]);
+          const seasonSlug = slugify(
+            `${parent?.title || ""} temporada ${a.number}`,
+          );
+
+          return seasonSlug === slug;
+        }
+
+        if (assetType === "episodes") {
+          const season = findAsset(seasons, a.season["@key"]);
+          const parent = findAsset(tvShows, season?.tvShow["@key"]);
+          const episodeSlug = slugify(
+            `${parent?.title || ""} s${season?.number || ""} e${a.episodeNumber} ${a.title}`,
+          );
+
+          return episodeSlug === slug;
+        }
+
+        return false;
+      });
+
+      if (!item) {
+        return assets.find((a) => a["@key"] === slug) || null;
+      }
+
+      return item as T;
+    },
+    enabled: enabled && !!slug,
   });
 };
 

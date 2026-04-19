@@ -4,6 +4,36 @@ import {
   ITvShowData,
 } from "../interfaces/interfaces";
 
+export const encodeKey = (key: string) =>
+  encodeURIComponent(btoa(unescape(encodeURIComponent(key))));
+
+export const decodeKey = (encoded: string) => {
+  try {
+    const keyPart = encoded.includes("--")
+      ? encoded.split("--").pop()!
+      : encoded;
+
+    if (!keyPart) {
+      return encoded;
+    }
+
+    return decodeURIComponent(escape(atob(decodeURIComponent(keyPart))));
+  } catch (e) {
+    return encoded;
+  }
+};
+
+export const slugify = (text: string): string =>
+  text
+    .toString()
+    .toLowerCase()
+    .trim()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/\s+/g, "-")
+    .replace(/[^\w-]+/g, "")
+    .replace(/--+/g, "-") + "--";
+
 export const isValidRating = (value: number): boolean => {
   if (value < 0 || value > 10) {
     return false;
@@ -20,6 +50,7 @@ export const getGradient = (
   title: string,
 ): string => {
   let hash = 0;
+
   for (let i = 0; i < title.length; i++) {
     hash = title.charCodeAt(i) + ((hash << 5) - hash);
   }
@@ -37,32 +68,48 @@ export const isValidReleaseYear = (
   seriesYear: number,
 ): boolean => itemYear >= seriesYear;
 
-export const getAgeRecommendationColor = (age: number): string => {
+export const getAgeRecommendationColor = (
+  age: number,
+  showBackground: boolean = false,
+): string => {
   if (age <= 10) {
-    return "bg-green-500/15 text-green-600";
+    return showBackground ? "bg-green-500/20 text-green-600" : "text-green-600";
   }
 
   if (age < 18) {
-    return "bg-yellow-500/15 text-yellow-600";
+    return showBackground
+      ? "bg-yellow-500/20 text-yellow-600"
+      : "text-yellow-600";
   }
 
-  return "bg-red-500/15 text-red-600";
+  return showBackground ? "bg-red-400/20 text-red-600" : "text-red-600";
 };
 
-export const getRatingColor = (rating: number): string => {
+export const getRatingColor = (
+  rating: number,
+  showBackground: boolean = false,
+): string => {
+  if (!rating || rating <= 0) {
+    return showBackground
+      ? "bg-secondary text-muted-foreground"
+      : "text-muted-foreground";
+  }
+
   if (rating >= 8) {
-    return "bg-green-500/20 text-green-600";
+    return showBackground ? "bg-green-500/20 text-green-600" : "text-green-600";
   }
 
   if (rating >= 7) {
-    return "bg-green-400/20 text-green-700";
+    return showBackground ? "bg-green-400/20 text-green-700" : "text-green-700";
   }
 
   if (rating >= 5) {
-    return "bg-yellow-500/20 text-yellow-600";
+    return showBackground
+      ? "bg-yellow-500/20 text-yellow-600"
+      : "text-yellow-600";
   }
 
-  return "bg-red-400/20 text-red-600";
+  return showBackground ? "bg-red-400/20 text-red-600" : "text-red-600";
 };
 
 export const findAssetByKey = <T extends { "@key": string }>(

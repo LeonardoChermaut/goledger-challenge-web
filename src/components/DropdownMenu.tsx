@@ -47,10 +47,10 @@ export const DropdownMenu: FunctionComponent<DropdownMenuProps> = ({
     <div className={cn("relative", className)} ref={menuRef}>
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="rounded-full p-2 text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors focus:outline-none"
+        className="rounded-full p-1 text-muted-foreground/60 hover:bg-secondary/80 hover:text-foreground transition-colors focus:outline-none"
         title="Mais opções"
       >
-        <MoreVertical className="h-4 w-4" />
+        <MoreVertical className="h-3.5 w-3.5" />
       </button>
 
       {isOpen && (

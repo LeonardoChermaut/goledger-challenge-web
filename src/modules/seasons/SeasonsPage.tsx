@@ -199,12 +199,12 @@ export const SeasonsPage = () => {
       </Modal>
 
       <ConfirmDialog
-        title="Remover Temporada"
+        title="Remover Registro"
         open={handler.deleteDisclosure.isOpen}
         onConfirm={handleDeleteConfirm}
         onClose={handler.deleteDisclosure.close}
         loading={deleteSeason.isPending}
-        message={`Deseja remover a Temporada ${handler.deleteItem?.number} de ${handler.deleteItem ? getTvShowTitle(handler.deleteItem, tvShows ?? []) : ""}? Esta acao nao pode ser desfeita.`}
+        message={`Deseja realmente remover este registro?`}
       />
     </PageShell>
   );

@@ -2,8 +2,10 @@ import { CardActions } from "@/components/CardActions";
 import { cn } from "@/lib/lib";
 import { seasonGradients } from "@/shared/constants/constants";
 import { ITvShowData } from "@/shared/interfaces/interfaces";
+import { routes } from "@/shared/routes/routes";
 import { getAgeRecommendationColor, getGradient } from "@/shared/utils/utils";
 import { Heart, Loader2, Tv } from "lucide-react";
+import { Link } from "react-router-dom";
 
 type TvShowCardProps = {
   show: ITvShowData;
@@ -26,63 +28,81 @@ export const TvShowCard = ({
 
   return (
     <div className="group glass-card overflow-hidden transition-all hover:border-primary/30 hover:shadow-lg hover:shadow-primary/5">
-      <div
-        className={`relative h-36 bg-gradient-to-br ${gradient} cursor-pointer`}
-      >
-        <div className="absolute inset-0 flex items-center justify-center">
-          <Tv className="h-12 w-12 text-primary/20" />
-        </div>
-        <div className="p-4">
-          <h3 className="font-heading text-sm font-semibold text-foreground group-hover:text-primary transition-colors line-clamp-1">
-            {show.title}
-          </h3>
-        </div>
-        <div className="absolute right-3 top-3 flex items-center gap-2">
+      <div className={`relative h-36 bg-gradient-to-br ${gradient}`}>
+        <Link
+          to={routes.route.tvshowDetail(show.title)}
+          aria-label={`Ver detalhes de ${show.title}`}
+          className="absolute inset-0 flex flex-col justify-end"
+        >
+          <div className="absolute inset-0 flex items-center justify-center">
+            <Tv className="h-12 w-12 text-primary/20" />
+          </div>
+          <div className="p-4">
+            <h3 className="font-heading text-sm font-semibold text-foreground group-hover:text-primary transition-colors line-clamp-1">
+              {show.title}
+            </h3>
+          </div>
+        </Link>
+        <div
+          className="absolute right-3 top-3 flex items-center gap-2"
+          onClick={(e) => e.preventDefault()}
+        >
           <span
             className={cn(
-              "rounded-full px-2 py-0.5 text-xs font-medium backdrop-blur-sm",
-              getAgeRecommendationColor(show.recommendedAge),
+              "rounded-full px-2 py-0.5 text-[10px] font-bold uppercase backdrop-blur-md ring-1 ring-inset ring-white/10",
+              getAgeRecommendationColor(show.recommendedAge, true),
             )}
           >
             {show.recommendedAge}+
           </span>
           <button
-            onClick={onToggleFavorite}
+            onClick={(e) => {
+              e.stopPropagation();
+              onToggleFavorite();
+            }}
             disabled={isFavoritePending}
             className={cn(
-              "rounded-full p-1 backdrop-blur-sm transition-colors",
+              "rounded-full p-1.5",
               isFavoritePending && "pointer-events-none opacity-50",
               isFavorite
-                ? "text-red-500"
-                : "text-muted-foreground hover:text-red-500",
+                ? "text-red-500 hover:bg-red-500/5"
+                : "text-muted-foreground hover:bg-red-500/5",
             )}
             title={
               isFavorite ? "Remover dos favoritos" : "Adicionar aos favoritos"
             }
           >
             {isFavoritePending ? (
-              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              <Loader2 className="h-3 w-3 animate-spin" />
             ) : (
               <Heart
-                className={cn(
-                  `h-3.5 w-3.5 ${isFavorite && "fill-current"} ${!isFavorite && "hover:fill-red-500"}`,
-                )}
+                className={cn(`h-3 w-3 ${isFavorite && "fill-current"}`)}
               />
             )}
           </button>
-          <CardActions
-            onEdit={() => onEdit(show)}
-            onDelete={() => onDelete(show)}
-          />
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="rounded-full p-0.5"
+          >
+            <CardActions
+              onEdit={() => onEdit(show)}
+              onDelete={() => onDelete(show)}
+            />
+          </div>
         </div>
       </div>
 
-      <div className="p-4">
-        <p className="text-sm font-semibold text-foreground">Descrição</p>
-        <p className="mt-1 line-clamp-2 text-sm text-muted-foreground/80 leading-relaxed">
-          {show.description}
+      <Link
+        to={routes.route.tvshowDetail(show.title)}
+        className="block p-4"
+      >
+        <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground/60 mb-1">
+          Sinopse
         </p>
-      </div>
+        <p className="line-clamp-2 text-sm text-foreground/70 leading-relaxed italic">
+          "{show.description}"
+        </p>
+      </Link>
     </div>
   );
 };

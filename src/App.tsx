@@ -6,12 +6,15 @@ import { ErrorBoundary } from "./components/ErrorBoundary";
 import { Footer } from "./components/Footer";
 import { Header } from "./components/Header";
 import { EpisodesPage } from "./modules/episodes/EpisodesPage";
+import { EpisodeDetailPage } from "./modules/episodes/EpisodeDetailPage";
 import { HomePage } from "./modules/home/HomePage";
 import { NotFoundPage } from "./modules/not-found/NotFoundPage";
-
 import { SeasonsPage } from "./modules/seasons/SeasonsPage";
+import { SeasonDetailPage } from "./modules/seasons/SeasonDetailPage";
 import { TvShowsPage } from "./modules/tv-shows/TvShowsPage";
+import { TvShowDetailPage } from "./modules/tv-shows/TvShowDetailPage";
 import { WatchlistsPage } from "./modules/watchlists/WatchlistsPage";
+import { WatchlistDetailPage } from "./modules/watchlists/WatchlistDetailPage";
 import { routes } from "./shared/routes/routes";
 
 const queryClient = new QueryClient({
@@ -35,14 +38,30 @@ export const App = () => (
               <Routes>
                 <Route path={routes.route.home} element={<HomePage />} />
                 <Route path={routes.route.tvshows} element={<TvShowsPage />} />
+                <Route
+                  path={routes.route.tvshowDetailPattern}
+                  element={<TvShowDetailPage />}
+                />
                 <Route path={routes.route.seasons} element={<SeasonsPage />} />
+                <Route
+                  path={routes.route.seasonDetailPattern}
+                  element={<SeasonDetailPage />}
+                />
                 <Route
                   path={routes.route.episodes}
                   element={<EpisodesPage />}
                 />
                 <Route
+                  path={routes.route.episodeDetailPattern}
+                  element={<EpisodeDetailPage />}
+                />
+                <Route
                   path={routes.route.watchlists}
                   element={<WatchlistsPage />}
+                />
+                <Route
+                  path={routes.route.watchlistDetailPattern}
+                  element={<WatchlistDetailPage />}
                 />
                 <Route path="*" element={<NotFoundPage />} />
               </Routes>
@@ -54,3 +73,4 @@ export const App = () => (
     </QueryClientProvider>
   </ErrorBoundary>
 );
+
