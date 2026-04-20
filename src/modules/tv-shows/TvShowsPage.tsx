@@ -1,3 +1,4 @@
+import { FunctionComponent } from "react";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { Modal } from "@/components/Modal";
 import { PageShell } from "@/components/PageShell";
@@ -12,8 +13,40 @@ import { usePagination } from "@/hooks/use-pagination";
 import { ITvShowData, ITvShowFormData } from "@/shared/interfaces/interfaces";
 import { sortByFavorite } from "@/shared/utils/utils";
 import { Plus, Tv } from "lucide-react";
-import { TvShowCard } from "./components/TvShowCard";
+import { TvShowGrid } from "./components/TvShowGrid";
+import { TvShowListEmpty } from "./components/TvShowListEmpty";
 import { TvShowForm } from "./components/TvShowForm";
+
+const TvShowListSection: FunctionComponent<{
+  shows: ITvShowData[];
+  onEdit: (show: ITvShowData) => void;
+  onDelete: (show: ITvShowData) => void;
+  isFavorite: (key: string) => boolean;
+  isFavoritePending: (key: string) => boolean;
+  onToggleFavorite: (title: string, description: string, key: string) => void;
+}> = ({
+  shows,
+  onEdit,
+  onDelete,
+  isFavorite,
+  isFavoritePending,
+  onToggleFavorite,
+}) => {
+  if (shows.length === 0) {
+    return <TvShowListEmpty />;
+  }
+
+  return (
+    <TvShowGrid
+      shows={shows}
+      onEdit={onEdit}
+      onDelete={onDelete}
+      isFavorite={isFavorite}
+      isFavoritePending={isFavoritePending}
+      onToggleFavorite={onToggleFavorite}
+    />
+  );
+};
 
 export const TvShowsPage = () => {
   const {
@@ -98,21 +131,14 @@ export const TvShowsPage = () => {
             emptyMessage="Nenhum programa de TV encontrado."
             onRetry={() => refetch()}
           >
-            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-              {sortedPaginatedData.map((show) => (
-                <TvShowCard
-                  key={show["@key"]}
-                  show={show}
-                  onEdit={handler.openEdit}
-                  onDelete={handler.openDelete}
-                  isFavorite={isFavorite(show["@key"])}
-                  isFavoritePending={isPending(show["@key"])}
-                  onToggleFavorite={() =>
-                    toggleFavorite(show.title, show.description, show["@key"])
-                  }
-                />
-              ))}
-            </div>
+            <TvShowListSection
+              shows={sortedPaginatedData}
+              onEdit={handler.openEdit}
+              onDelete={handler.openDelete}
+              isFavorite={isFavorite}
+              isFavoritePending={isPending}
+              onToggleFavorite={toggleFavorite}
+            />
           </QueryResult>
         </div>
 

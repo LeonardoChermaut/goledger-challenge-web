@@ -2,7 +2,7 @@ import {
   IEpisodeData,
   ISeasonData,
   ITvShowData,
-} from "../interfaces/interfaces";
+} from "@/shared/interfaces/interfaces";
 
 export const encodeKey = (key: string) =>
   encodeURIComponent(btoa(unescape(encodeURIComponent(key))));
@@ -70,7 +70,7 @@ export const isValidReleaseYear = (
 
 export const getAgeRecommendationColor = (
   age: number,
-  showBackground: boolean = true,
+  showBackground: boolean = false,
 ): string => {
   if (age <= 10) {
     return showBackground ? "bg-green-500/15 text-green-600" : "text-green-600";
@@ -87,7 +87,7 @@ export const getAgeRecommendationColor = (
 
 export const getRatingColor = (
   rating: number,
-  showBackground: boolean = true,
+  showBackground: boolean = false,
 ): string => {
   if (!rating || rating <= 0) {
     return showBackground ? "bg-red-400/20 text-red-600" : "text-red-600";

@@ -1,4 +1,3 @@
-import { AssetListGroup } from "@/components/AssetListGroup";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { Modal } from "@/components/Modal";
 import { PageShell } from "@/components/PageShell";
@@ -11,17 +10,54 @@ import { useFavorite } from "@/hooks/use-favorite";
 import { useGroupedAssets } from "@/hooks/use-grouped-assets";
 import { useHandlers } from "@/hooks/use-handlers";
 import { usePagination } from "@/hooks/use-pagination";
-import { ISeasonData, ISeasonFormData } from "@/shared/interfaces/interfaces";
 import {
-  findAssetByKey,
-  getTvShowAge,
+  ISeasonData,
+  ISeasonFormData,
+  ITvShowData,
+} from "@/shared/interfaces/interfaces";
+import {
   getTvShowTitle,
   sortByFavorite,
   sortSeasons,
 } from "@/shared/utils/utils";
 import { Film, Plus } from "lucide-react";
-import { SeasonCard } from "./components/SeasonCard";
 import { SeasonForm } from "./components/SeasonForm";
+import { SeasonListEmpty } from "./components/SeasonListEmpty";
+import { SeasonListGroup } from "./components/SeasonListGroup";
+
+const SeasonListSection = ({
+  groupedSeasons,
+  tvShows,
+  onEdit,
+  onDelete,
+  isFavorite,
+  isFavoritePending,
+  onToggleFavorite,
+}: {
+  groupedSeasons: [string, ISeasonData[]][];
+  tvShows: ITvShowData[] | undefined;
+  onEdit: (season: ISeasonData) => void;
+  onDelete: (season: ISeasonData) => void;
+  isFavorite: (key: string) => boolean;
+  isFavoritePending: (key: string) => boolean;
+  onToggleFavorite: (title: string, description: string, key: string) => void;
+}) => {
+  if (groupedSeasons.length === 0) {
+    return <SeasonListEmpty />;
+  }
+
+  return (
+    <SeasonListGroup
+      groupedSeasons={groupedSeasons}
+      tvShows={tvShows}
+      onEdit={onEdit}
+      onDelete={onDelete}
+      isFavorite={isFavorite}
+      isFavoritePending={isFavoritePending}
+      onToggleFavorite={onToggleFavorite}
+    />
+  );
+};
 
 export const SeasonsPage = () => {
   const {
@@ -121,34 +157,14 @@ export const SeasonsPage = () => {
             emptyMessage="Nenhuma temporada encontrada."
             onRetry={() => refetch()}
           >
-            <AssetListGroup
-              groups={groupedSeasons}
-              renderItem={(season, showTitle) => {
-                const tvShow = findAssetByKey(tvShows, season.tvShow["@key"]);
-                const tvShowKey = season.tvShow["@key"];
-
-                return (
-                  <SeasonCard
-                    key={season["@key"]}
-                    season={season}
-                    onEdit={handler.openEdit}
-                    onDelete={handler.openDelete}
-                    tvShowTitle={showTitle}
-                    isFavorite={isFavorite(tvShowKey)}
-                    isFavoritePending={isPending(tvShowKey)}
-                    onToggleFavorite={() => {
-                      if (tvShow) {
-                        toggleFavorite(
-                          tvShow.title,
-                          tvShow.description,
-                          tvShowKey,
-                        );
-                      }
-                    }}
-                    tvShowAge={getTvShowAge(season, tvShows ?? [])}
-                  />
-                );
-              }}
+            <SeasonListSection
+              groupedSeasons={groupedSeasons}
+              tvShows={tvShows}
+              onEdit={handler.openEdit}
+              onDelete={handler.openDelete}
+              isFavorite={isFavorite}
+              isFavoritePending={isPending}
+              onToggleFavorite={toggleFavorite}
             />
           </QueryResult>
         </div>

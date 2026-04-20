@@ -11,11 +11,41 @@ import { usePagination } from "@/hooks/use-pagination";
 import {
   IWatchlistData,
   IWatchlistFormData,
+  ITvShowData,
 } from "@/shared/interfaces/interfaces";
 import { findAssetByKey } from "@/shared/utils/utils";
 import { BookmarkPlus, Plus } from "lucide-react";
-import { WatchlistCard } from "./components/WatchlistCard";
 import { WatchlistForm } from "./components/WatchlistForm";
+import { WatchlistGrid } from "./components/WatchlistGrid";
+import { WatchlistListEmpty } from "./components/WatchlistListEmpty";
+
+const WatchlistListSection = ({
+  watchlists,
+  tvShows,
+  onEdit,
+  onDelete,
+}: {
+  watchlists: IWatchlistData[];
+  tvShows: ITvShowData[] | undefined;
+  onEdit: (watchlist: IWatchlistData) => void;
+  onDelete: (watchlist: IWatchlistData) => void;
+}) => {
+  const resolveTvShowTitle = (key: string): string =>
+    findAssetByKey(tvShows, key)?.title ?? key;
+
+  if (watchlists.length === 0) {
+    return <WatchlistListEmpty />;
+  }
+
+  return (
+    <WatchlistGrid
+      watchlists={watchlists}
+      getTvShowTitle={resolveTvShowTitle}
+      onEdit={onEdit}
+      onDelete={onDelete}
+    />
+  );
+};
 
 export const WatchlistsPage = () => {
   const {
@@ -44,9 +74,6 @@ export const WatchlistsPage = () => {
     searchKey: "title",
     onFilterChange: resetPagination,
   });
-
-  const resolveTvShowTitle = (key: string): string =>
-    findAssetByKey(tvShows, key)?.title ?? key;
 
   const handleFormSubmit = async (formData: IWatchlistFormData) => {
     const payload: Omit<IWatchlistData, "@key"> = {
@@ -100,17 +127,12 @@ export const WatchlistsPage = () => {
         emptyMessage="Nenhuma lista encontrada."
         onRetry={() => refetch()}
       >
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {paginatedData.map((watchlist) => (
-            <WatchlistCard
-              key={watchlist["@key"]}
-              watchlist={watchlist}
-              getTvShowTitle={resolveTvShowTitle}
-              onEdit={handler.openEdit}
-              onDelete={handler.openDelete}
-            />
-          ))}
-        </div>
+        <WatchlistListSection
+          watchlists={paginatedData}
+          tvShows={tvShows}
+          onEdit={handler.openEdit}
+          onDelete={handler.openDelete}
+        />
       </QueryResult>
 
       <Pagination
