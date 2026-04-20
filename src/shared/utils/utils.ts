@@ -18,7 +18,7 @@ export const decodeKey = (encoded: string) => {
     }
 
     return decodeURIComponent(escape(atob(decodeURIComponent(keyPart))));
-  } catch (e) {
+  } catch {
     return encoded;
   }
 };
@@ -70,29 +70,27 @@ export const isValidReleaseYear = (
 
 export const getAgeRecommendationColor = (
   age: number,
-  showBackground: boolean = false,
+  showBackground: boolean = true,
 ): string => {
   if (age <= 10) {
-    return showBackground ? "bg-green-500/20 text-green-600" : "text-green-600";
+    return showBackground ? "bg-green-500/15 text-green-600" : "text-green-600";
   }
 
   if (age < 18) {
     return showBackground
-      ? "bg-yellow-500/20 text-yellow-600"
+      ? "bg-yellow-500/15 text-yellow-600"
       : "text-yellow-600";
   }
 
-  return showBackground ? "bg-red-400/20 text-red-600" : "text-red-600";
+  return showBackground ? "bg-red-500/15 text-red-600" : "text-red-600";
 };
 
 export const getRatingColor = (
   rating: number,
-  showBackground: boolean = false,
+  showBackground: boolean = true,
 ): string => {
   if (!rating || rating <= 0) {
-    return showBackground
-      ? "bg-secondary text-muted-foreground"
-      : "text-muted-foreground";
+    return showBackground ? "bg-red-400/20 text-red-600" : "text-red-600";
   }
 
   if (rating >= 8) {

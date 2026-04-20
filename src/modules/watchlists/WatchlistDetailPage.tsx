@@ -11,7 +11,10 @@ import { BookmarkPlus, Tv } from "lucide-react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { WatchlistForm } from "./components/WatchlistForm";
 import { WatchlistTvShowItem } from "./components/WatchlistTvShowItem";
-import { IWatchlistData, IWatchlistFormData } from "@/shared/interfaces/interfaces";
+import {
+  IWatchlistData,
+  IWatchlistFormData,
+} from "@/shared/interfaces/interfaces";
 
 export const WatchlistDetailPage = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -162,7 +165,8 @@ export const WatchlistDetailPage = () => {
                   title: handler.editItem.title,
                   description: handler.editItem.description || "",
                   tvShows:
-                    handler.editItem.tvShows?.map((tvShow) => tvShow["@key"]) || [],
+                    handler.editItem.tvShows?.map((tvShow) => tvShow["@key"]) ||
+                    [],
                 }
               : undefined
           }

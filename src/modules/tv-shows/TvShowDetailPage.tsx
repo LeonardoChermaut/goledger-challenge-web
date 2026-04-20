@@ -7,10 +7,7 @@ import { useFavorite } from "@/hooks/use-favorite";
 import { useHandlers } from "@/hooks/use-handlers";
 import { cn } from "@/lib/lib";
 import { tvShowGradients } from "@/shared/constants/constants";
-import {
-  ITvShowData,
-  ITvShowFormData,
-} from "@/shared/interfaces/interfaces";
+import { ITvShowData, ITvShowFormData } from "@/shared/interfaces/interfaces";
 import { routes } from "@/shared/routes/routes";
 import { getAgeRecommendationColor, getGradient } from "@/shared/utils/utils";
 import { Film, Tv } from "lucide-react";

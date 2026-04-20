@@ -92,10 +92,7 @@ export const TvShowCard = ({
         </div>
       </div>
 
-      <Link
-        to={routes.route.tvshowDetail(show.title)}
-        className="block p-4"
-      >
+      <Link to={routes.route.tvshowDetail(show.title)} className="block p-4">
         <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground/60 mb-1">
           Sinopse
         </p>

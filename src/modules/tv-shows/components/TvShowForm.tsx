@@ -1,7 +1,8 @@
-import { ITvShowFormData } from "@/shared/interfaces/interfaces";
-import { isValidAge } from "@/shared/utils/utils";
 import { FunctionComponent } from "react";
 import { useForm } from "react-hook-form";
+
+import { ITvShowFormData } from "@/shared/interfaces/interfaces";
+import { isValidAge } from "@/shared/utils/utils";
 
 type TvShowFormProps = {
   isEditing: boolean;

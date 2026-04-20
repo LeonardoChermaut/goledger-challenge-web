@@ -11,13 +11,7 @@ import {
   episodeGradients,
   seasonGradients,
 } from "@/shared/constants/constants";
-import {
-  IEpisodeData,
-  ISeasonData,
-  ISeasonFormData,
-  ITvShowData,
-  IWatchlistData,
-} from "@/shared/interfaces/interfaces";
+import { ISeasonData, ISeasonFormData } from "@/shared/interfaces/interfaces";
 import { routes } from "@/shared/routes/routes";
 import {
   findAssetByKey,
@@ -123,8 +117,8 @@ export const SeasonDetailPage = () => {
                 },
               ]
             : isTvShowsLoading
-            ? [{ label: "Carregando..." }]
-            : []),
+              ? [{ label: "Carregando..." }]
+              : []),
           { label: season ? `Temporada ${season.number}` : "Detalhes" },
         ]}
         actions={
@@ -227,7 +221,9 @@ export const SeasonDetailPage = () => {
               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 {relatedEpisodes
                   .slice()
-                  .sort((a, b) => Number(a.episodeNumber) - Number(b.episodeNumber))
+                  .sort(
+                    (a, b) => Number(a.episodeNumber) - Number(b.episodeNumber),
+                  )
                   .map((ep) => {
                     const eg = getGradient(episodeGradients, ep.title);
                     const hasRating = ep.rating != null && ep.rating > 0;

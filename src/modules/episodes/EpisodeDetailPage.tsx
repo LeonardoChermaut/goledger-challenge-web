@@ -8,13 +8,7 @@ import { useFavorite } from "@/hooks/use-favorite";
 import { useHandlers } from "@/hooks/use-handlers";
 import { cn } from "@/lib/lib";
 import { episodeGradients } from "@/shared/constants/constants";
-import {
-  IEpisodeData,
-  IEpisodeFormData,
-  ISeasonData,
-  ITvShowData,
-  IWatchlistData,
-} from "@/shared/interfaces/interfaces";
+import { IEpisodeData, IEpisodeFormData } from "@/shared/interfaces/interfaces";
 import { routes } from "@/shared/routes/routes";
 import {
   findAssetByKey,
@@ -137,8 +131,8 @@ export const EpisodeDetailPage = () => {
                 },
               ]
             : isTvShowsLoading
-            ? [{ label: "Carregando..." }]
-            : []),
+              ? [{ label: "Carregando..." }]
+              : []),
           ...(season
             ? [
                 {
@@ -150,8 +144,8 @@ export const EpisodeDetailPage = () => {
                 },
               ]
             : isSeasonsLoading
-            ? [{ label: "..." }]
-            : []),
+              ? [{ label: "..." }]
+              : []),
           {
             label: episode
               ? `E${episode.episodeNumber}: ${episode.title}`

@@ -26,7 +26,6 @@ type EpisodeCardProps = {
   onToggleFavorite: () => void;
 };
 
-
 export const EpisodeCard = ({
   episode,
   seasonLabel,
@@ -39,7 +38,6 @@ export const EpisodeCard = ({
   onDelete,
   onToggleFavorite,
 }: EpisodeCardProps) => {
-
   const displayTvShowAge =
     tvShowAge != null && isValidAge(tvShowAge) ? tvShowAge : null;
 
@@ -63,7 +61,6 @@ export const EpisodeCard = ({
           aria-label={`Ver detalhes do episódio ${episode.episodeNumber}: ${episode.title}`}
           className="absolute inset-0 flex flex-col justify-end"
         >
-
           <div className="absolute inset-0 flex items-center justify-center">
             <PlayCircle className="h-12 w-12 text-primary/20 mt-10" />
           </div>

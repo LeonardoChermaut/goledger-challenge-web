@@ -11,9 +11,7 @@ export const useFavorite = ({ watchlists }: IUseFavoriteOptions) => {
   const queryClient = useQueryClient();
 
   const { createAsset: createWatchlist, deleteAsset: deleteWatchlist } =
-    useAssetManager<IWatchlistData>({
-      assetType: "watchlist",
-    });
+    useAssetManager("watchlist");
 
   const [pendingKey, setPendingKey] = useState<string | null>(null);
 

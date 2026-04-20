@@ -11,10 +11,7 @@ import { useFavorite } from "@/hooks/use-favorite";
 import { useGroupedAssets } from "@/hooks/use-grouped-assets";
 import { useHandlers } from "@/hooks/use-handlers";
 import { usePagination } from "@/hooks/use-pagination";
-import {
-  IEpisodeData,
-  IEpisodeFormData,
-} from "@/shared/interfaces/interfaces";
+import { IEpisodeData, IEpisodeFormData } from "@/shared/interfaces/interfaces";
 import {
   findAssetByKey,
   getEpisodeSeasonLabel,
@@ -74,15 +71,14 @@ export const EpisodesPage = () => {
 
   const { resetPagination } = usePagination({ data: episodes });
 
-  const { searchTerm, filteredData, handleSearchChange } =
-    useAssetSearch({
-      data: episodes,
-      customFilter: (item, term) =>
-        getTvShowTitleFromEpisode(item, seasons ?? [], tvShows ?? [])
-          .toLowerCase()
-          .includes(term) || item.title.toLowerCase().includes(term),
-      onFilterChange: resetPagination,
-    });
+  const { searchTerm, filteredData, handleSearchChange } = useAssetSearch({
+    data: episodes,
+    customFilter: (item, term) =>
+      getTvShowTitleFromEpisode(item, seasons ?? [], tvShows ?? [])
+        .toLowerCase()
+        .includes(term) || item.title.toLowerCase().includes(term),
+    onFilterChange: resetPagination,
+  });
 
   const initialSorted = [...(filteredData ?? [])].sort((a, b) => {
     const showA = getTvShowTitleFromEpisode(a, seasons ?? [], tvShows ?? []);

@@ -35,8 +35,6 @@ export const EntityMetadata: FunctionComponent<EntityMetadataProps> = ({
   className,
 }) => (
   <div className={cn("glass-card p-6", className)}>
-    <dl className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-      {children}
-    </dl>
+    <dl className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">{children}</dl>
   </div>
 );

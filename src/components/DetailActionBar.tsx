@@ -26,10 +26,8 @@ const styles = {
     "text-muted-foreground/60 hover:bg-secondary/80 hover:text-foreground",
   destructive:
     "text-destructive/50 hover:bg-destructive/10 hover:text-destructive",
-  favorite:
-    "text-muted-foreground/60 hover:text-red-500 hover:bg-red-500/5",
-  "favorite-active":
-    "text-red-500 hover:bg-red-500/10",
+  favorite: "text-muted-foreground/60 hover:text-red-500 hover:bg-red-500/5",
+  "favorite-active": "text-red-500 hover:bg-red-500/10",
 } as const;
 
 type ActionButtonVariant = keyof typeof styles;

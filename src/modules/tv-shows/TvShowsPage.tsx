@@ -9,10 +9,7 @@ import { useAssetManager } from "@/hooks/use-assets";
 import { useFavorite } from "@/hooks/use-favorite";
 import { useHandlers } from "@/hooks/use-handlers";
 import { usePagination } from "@/hooks/use-pagination";
-import {
-  ITvShowData,
-  ITvShowFormData,
-} from "@/shared/interfaces/interfaces";
+import { ITvShowData, ITvShowFormData } from "@/shared/interfaces/interfaces";
 import { sortByFavorite } from "@/shared/utils/utils";
 import { Plus, Tv } from "lucide-react";
 import { TvShowCard } from "./components/TvShowCard";
@@ -36,11 +33,10 @@ export const TvShowsPage = () => {
 
   const { resetPagination } = usePagination({ data: tvShows });
 
-  const { searchTerm, filteredData, handleSearchChange } =
-    useAssetSearch({
-      data: tvShows,
-      onFilterChange: resetPagination,
-    });
+  const { searchTerm, filteredData, handleSearchChange } = useAssetSearch({
+    data: tvShows,
+    onFilterChange: resetPagination,
+  });
 
   const sortedTvShows = sortByFavorite(filteredData ?? [], (show) =>
     isFavorite(show["@key"]),

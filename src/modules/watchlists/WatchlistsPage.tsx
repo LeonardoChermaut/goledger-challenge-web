@@ -39,12 +39,11 @@ export const WatchlistsPage = () => {
     resetPagination,
   } = usePagination({ data: watchlists });
 
-  const { searchTerm, filteredData, handleSearchChange } =
-    useAssetSearch({
-      data: watchlists,
-      searchKey: "title",
-      onFilterChange: resetPagination,
-    });
+  const { searchTerm, filteredData, handleSearchChange } = useAssetSearch({
+    data: watchlists,
+    searchKey: "title",
+    onFilterChange: resetPagination,
+  });
 
   const resolveTvShowTitle = (key: string): string =>
     findAssetByKey(tvShows, key)?.title ?? key;
