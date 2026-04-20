@@ -3,14 +3,14 @@ import { ITvShowData } from "@/shared/interfaces/interfaces";
 import { TvShowAgeBadge } from "./TvShowAgeBadge";
 import { TvShowFavoriteButton } from "./TvShowFavoriteButton";
 
-interface TvShowCardActionsProps {
+type TvShowCardActionsProps = {
   show: ITvShowData;
   isFavorite: boolean;
   isPending: boolean;
   onEdit: (show: ITvShowData) => void;
   onDelete: (show: ITvShowData) => void;
   onToggleFavorite: () => void;
-}
+};
 
 export const TvShowCardActions = ({
   show,

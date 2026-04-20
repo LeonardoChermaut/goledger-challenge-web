@@ -3,10 +3,10 @@ import { routes } from "@/shared/routes/routes";
 import { Tv } from "lucide-react";
 import { Link } from "react-router-dom";
 
-interface TvShowCardHeaderProps {
+type TvShowCardHeaderProps = {
   show: ITvShowData;
   gradient: string;
-}
+};
 
 export const TvShowCardHeader = ({ show, gradient }: TvShowCardHeaderProps) => {
   return (

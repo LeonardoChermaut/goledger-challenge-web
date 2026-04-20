@@ -2,9 +2,9 @@ import { ITvShowData } from "@/shared/interfaces/interfaces";
 import { routes } from "@/shared/routes/routes";
 import { Link } from "react-router-dom";
 
-interface TvShowCardDescriptionProps {
+type TvShowCardDescriptionProps = {
   show: ITvShowData;
-}
+};
 
 export const TvShowCardDescription = ({ show }: TvShowCardDescriptionProps) => {
   return (
